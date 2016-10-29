@@ -40,6 +40,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
+import static org.firstinspires.ftc.teamcode.HardwareSigma2016.fileLogger;
+
 /**
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
  * It uses the common Pushbot hardware class to define the drive on the robot.
@@ -78,7 +80,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
     /* Declare OpMode members. */
-    Sigma2016Hardware robot = new Sigma2016Hardware();   // Use a Pushbot's hardware
+    HardwareSigma2016 robot = new HardwareSigma2016();   // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
 
     static final double COUNTS_PER_MOTOR_REV = 1440;    // eg: TETRIX Motor Encoder
@@ -105,6 +107,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
          * The init() method of the hardware class does most of the work here
          */
         robot.init(hardwareMap);
+
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
 
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
@@ -130,8 +133,9 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
         robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.backRightMotor.setMode((DcMotor.RunMode.RUN_WITHOUT_ENCODER));
+
 
         // Wait for the game to start (Display Gyro value), and reset gyro before we move..
         while (!isStarted()) {
@@ -144,22 +148,83 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Put a hold after each turn
-        gyroDrive(DRIVE_SPEED, 48.0, 0.0);    // Drive FWD 48 inches
-       // gyroTurn(TURN_SPEED, -45.0);         // Turn  CCW to -45 Degrees
-//        gyroHold(TURN_SPEED, -45.0, 0.5);    // Hold -45 Deg heading for a 1/2 second
-//        gyroTurn(TURN_SPEED, 45.0);         // Turn  CW  to  45 Degrees
-//        gyroHold(TURN_SPEED, 45.0, 0.5);    // Hold  45 Deg heading for a 1/2 second
-//        gyroTurn(TURN_SPEED, 0.0);         // Turn  CW  to   0 Degrees
-//        gyroHold(TURN_SPEED, 0.0, 1.0);    // Hold  0 Deg heading for a 1 second
-//        gyroDrive(DRIVE_SPEED, -48.0, 0.0);    // Drive REV 48 inches
-//        gyroHold(TURN_SPEED, 0.0, 0.5);    // Hold  0 Deg heading for a 1/2 second
+        gyroDrive(DRIVE_SPEED, 100.00, 0.0);        // Drive FWD 48 inches
 
-        robot.pusherL.setPosition(1.0);            // S4: Stop and close the claw.
-        robot.pusherR.setPosition(1.0);
+        fileLogger.logLine("1 -- gyro reading=" + gyro.getIntegratedZValue());
+
+        gyroTurn(TURN_SPEED, -45.0);               // Turn  CCW to -45 Degrees
+
+        fileLogger.logLine("2 -- gyro reading=" + gyro.getIntegratedZValue());
+
+        gyroHold(TURN_SPEED, -45.0, 0.5);       // Hold -45 Deg heading for a 1/2 second
+
+        fileLogger.logLine("3 -- gyro reading=" + gyro.getIntegratedZValue());
+
+//        gyroTurn(TURN_SPEED, 45.0);            // Turn  CW  to  45 Degrees
+//        gyroHold(TURN_SPEED, 45.0, 0.5);      // Hold  45 Deg heading for a 1/2 second
+//        gyroTurn(TURN_SPEED, 0.0);           // Turn  CW  to   0 Degrees
+//        gyroHold(TURN_SPEED, 0.0, 1.0);     // Hold  0 Deg heading for a 1 second
+        gyroDrive(DRIVE_SPEED, 30, 0.0);     // Drive REV 30 inches
+//        gyroHold(TURN_SPEED, 0.0, 0.5);   // Hold  0 Deg heading for a 1/2 second
+
+       // robot.pusherL.setPosition(1.0);            // S4: Stop and close the claw.
+       // robot.pusherR.setPosition(1.0);
         sleep(500);     // pause for servos to move
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
+
+//        //Start the beacon light detection procedure
+//        robot.lineLightSensor.enableLed(false); //led OFF
+//        ElapsedTime holdTimer = new ElapsedTime();
+//        // keep looping while we have time remaining.
+//        double holdTime = 10;
+//
+//        holdTimer.reset();
+//        while (holdTimer.time() < holdTime) {
+//            fileLogger.logLine("Raw " + robot.lineLightSensor.getRawLightDetected());
+//            fileLogger.logLine("Normal " + robot.lineLightSensor.getLightDetected());
+//
+//            sleep(100);
+//            idle();
+//        }
+
+//        Start the beacon light detection procedure
+        robot.beaconColorSensor.enableLed(false); //led OFF
+        ElapsedTime holdTimer = new ElapsedTime();
+//         keep looping while we have time remaining.
+        double holdTime = 10; //ten second time out
+
+
+        holdTimer.reset();
+        while (holdTimer.time() < holdTime) {
+            int red, green, blue;
+
+            red = robot.beaconColorSensor.red();
+            green = robot.beaconColorSensor.green();
+            blue = robot.beaconColorSensor.blue();
+
+            telemetry.addData("ColorRGB:: ", "%d %d %d", red, green, blue);
+            telemetry.update();
+//            fileLogger.logLine("Alpha " + robot.beaconColorSensor.alpha());
+//            fileLogger.logLine("Red " + robot.beaconColorSensor.red());
+//            fileLogger.logLine("Blue " + robot.beaconColorSensor.blue());
+//            fileLogger.logLine("Green " + robot.beaconColorSensor.green());
+            if((red > 50) && (green < 20) && (blue < 20)){ //red
+                robot.pusherL.setPosition(1);
+                sleep(500);
+                //wait servo to finish
+            }
+
+            if((red < 20) && (green < 20) && (blue < 50)){
+                robot.pusherR.setPosition(1);
+                sleep(500);
+                //wait servo to finish
+            }
+
+            sleep(100);
+            idle();
+        }
     }
 
 
@@ -195,32 +260,31 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
             moveCounts = (int) (distance * COUNTS_PER_INCH);
             newLeftTarget = robot.frontLeftMotor.getCurrentPosition() + moveCounts;
             newRightTarget = robot.frontRightMotor.getCurrentPosition() + moveCounts;
-            newLeftTarget = robot.backLeftMotor.getCurrentPosition() + moveCounts;
-            newRightTarget = robot.backRightMotor.getCurrentPosition() + moveCounts;
+//            newLeftTarget = robot.backLeftMotor.getCurrentPosition() + moveCounts;
+//            newRightTarget = robot.backRightMotor.getCurrentPosition() + moveCounts;
 
             // Set Target and Turn On RUN_TO_POSITION
             robot.frontLeftMotor.setTargetPosition(newLeftTarget);
             robot.frontRightMotor.setTargetPosition(newRightTarget);
-            robot.backLeftMotor.setTargetPosition(newLeftTarget);
-            robot.backRightMotor.setTargetPosition(newRightTarget);
+//            robot.backLeftMotor.setTargetPosition(newLeftTarget);
+//            robot.backRightMotor.setTargetPosition(newRightTarget);
 
             robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.backLeftMotor.setTargetPosition(newLeftTarget);
-            robot.backRightMotor.setTargetPosition(newRightTarget);
+//            robot.backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            robot.backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);  NOT SURE CHANGE LATER MAYBE
 
             // start motion.
             speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-            robot.frontLeftMotor.setPower(speed);
-            robot.frontRightMotor.setPower(speed);
-            robot.backRightMotor.setPower(speed);
-            robot.backLeftMotor.setPower(speed);
+//            robot.frontLeftMotor.setPower(speed);
+//            robot.frontRightMotor.setPower(speed);
+//            robot.backRightMotor.setPower(speed);
+//            robot.backLeftMotor.setPower(speed);
 
 
             // keep looping while we are still active, and BOTH motors are running.
             while (opModeIsActive() &&
-                    (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy()
-                            && robot.backLeftMotor.isBusy() && robot.backRightMotor.isBusy())) {
+                    (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
 
                 // adjust relative speed based on heading error.
                 error = getError(angle);
@@ -240,18 +304,16 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     rightSpeed /= max;
                 }
 
-                robot.frontLeftMotor.setPower(leftSpeed);
-                robot.frontRightMotor.setPower(rightSpeed);
-                robot.backLeftMotor.setPower(leftSpeed);
-                robot.backRightMotor.setPower(rightSpeed);
+//                robot.frontLeftMotor.setPower(leftSpeed);
+//                robot.frontRightMotor.setPower(rightSpeed);
+//                robot.backLeftMotor.setPower(leftSpeed);
+//                robot.backRightMotor.setPower(rightSpeed);
 
                 // Display drive status for the driver.
                 telemetry.addData("Err/St", "%5.1f/%5.1f", error, steer);
                 telemetry.addData("Target", "%7d:%7d", newLeftTarget, newRightTarget);
-                telemetry.addData("Actual", "%7d:%7d:%7d:%7d", robot.frontLeftMotor.getCurrentPosition(),
-                        robot.frontRightMotor.getCurrentPosition(),
-                        robot.backLeftMotor.getCurrentPosition(),
-                        robot.backRightMotor.getCurrentPosition());
+                telemetry.addData("Actual", "%7d:%7d", robot.frontLeftMotor.getCurrentPosition(),
+                        robot.frontRightMotor.getCurrentPosition());
 
                 telemetry.addData("Speed", "%5.2f:%5.2f", leftSpeed, rightSpeed);
                 telemetry.update();
@@ -266,8 +328,6 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
             // Turn off RUN_TO_POSITION
             robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
@@ -352,10 +412,10 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         }
 
         // Send desired speeds to motors.
-        robot.frontLeftMotor.setPower(leftSpeed);
-        robot.frontRightMotor.setPower(rightSpeed);
-        robot.backLeftMotor.setPower(leftSpeed);
-        robot.backRightMotor.setPower(rightSpeed);
+     //   robot.frontLeftMotor.setPower(leftSpeed);
+       // robot.frontRightMotor.setPower(rightSpeed);
+        //robot.backLeftMotor.setPower(leftSpeed);
+        // //robot.backRightMotor.setPower(rightSpeed);
 
         // Display it for the driver.
         telemetry.addData("Target", "%5.2f", angle);
