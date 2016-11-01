@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.io.FileNotFoundException;
@@ -41,6 +42,7 @@ public class HardwareSigma2016
     public Servo    pusherR   = null;
     public LightSensor lineLightSensor = null;
     public ColorSensor beaconColorSensor = null;
+    public UltrasonicSensor ultrasonicSensor = null;
 
     public static final double MID_SERVO       =  0 ;
     public static final double ARM_UP_POWER    =  0.45 ;
@@ -103,9 +105,14 @@ public class HardwareSigma2016
         pusherL.setPosition(MID_SERVO);
         pusherR.setPosition(MID_SERVO);
 
-        //lineLightSensor = hwMap.lightSensor.get("line_light");
-        beaconColorSensor = hwMap.colorSensor.get("beacon_color");
+        // light sensor on the robot bottom
+        lineLightSensor = hwMap.lightSensor.get("line_light");
 
+        // color sensor on beacon pusher
+        //beaconColorSensor = hwMap.colorSensor.get("beacon_color");
+
+        // ultrasonic sensor
+        ultrasonicSensor = hwMap.ultrasonicSensor.get("ultrasonic");
     }
 
     /***
