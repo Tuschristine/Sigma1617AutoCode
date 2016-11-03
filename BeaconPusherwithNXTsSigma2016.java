@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.hardware.LightSensor;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @TeleOp(name = "Sensor: LEGO light", group = "Sensor")
-//@Disabled
+@Disabled
 public class BeaconPusherwithNXTsSigma2016 extends LinearOpMode {
 
   LightSensor lightSensor;  // Hardware Device Object
