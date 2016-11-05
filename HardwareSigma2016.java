@@ -10,11 +10,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.logging.Logger;
-
 import static org.firstinspires.ftc.teamcode.BlueNearAutoOpSigma2016.fileLogger;
 
 /**
@@ -41,9 +36,10 @@ public class HardwareSigma2016
     public ColorSensor beaconColorSensor = null;
     public UltrasonicSensor ultrasonicSensor = null;
 
-    public static final double MID_SERVO       =  0 ;
-    public static final double ARM_UP_POWER    =  0.45 ;
-    public static final double ARM_DOWN_POWER  = -0.45 ;
+    public static final double PUSHER_L_IN  =  1.0 ;
+    public static final double PUSHER_R_IN  =  0.0 ;
+    public static final double PUSHER_L_OUT  =  0.0 ;
+    public static final double PUSHER_R_OUT  =  1.0 ;
 
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
@@ -77,14 +73,21 @@ public class HardwareSigma2016
         // Define and initialize ALL installed servos.
         pusherL = hwMap.servo.get("pusher_l");
         pusherR = hwMap.servo.get("pusher_r");
-        pusherL.setPosition(MID_SERVO);
-        pusherR.setPosition(MID_SERVO);
+        pusherL.setPosition(PUSHER_L_IN);
+        pusherR.setPosition(PUSHER_R_IN);
 
         // light sensor on the robot bottom
-        lineLightSensor = hwMap.lightSensor.get("line_light");
+//        lineLightSensor = hwMap.lightSensor.get("line_light");
 
         // color sensor on beacon pusher
         beaconColorSensor = hwMap.colorSensor.get("beacon_color");
+//        beaconColorSensor.enableLed(true);
+//        try {
+//            Thread.sleep(300);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        beaconColorSensor.enableLed(false);
 
         // ultrasonic sensor
         ultrasonicSensor = hwMap.ultrasonicSensor.get("ultrasonic");
