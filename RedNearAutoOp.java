@@ -72,7 +72,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 public class RedNearAutoOp extends LinearOpMode {
 
     /* Declare OpMode members. */
-    Sigma2016Hardware robot   = new Sigma2016Hardware();   // Use a Pushbot's hardware
+    HardwareSigma2016 robot   = new HardwareSigma2016();   // Use a Pushbot's hardware
     private ElapsedTime     runtime = new ElapsedTime();
 
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
@@ -84,7 +84,7 @@ public class RedNearAutoOp extends LinearOpMode {
     static final double     TURN_SPEED              = 0.5;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
 
         /*
          * Initialize the drive system variables.
