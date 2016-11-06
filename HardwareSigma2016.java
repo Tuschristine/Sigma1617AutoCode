@@ -25,6 +25,7 @@ import static org.firstinspires.ftc.teamcode.BlueNearAutoOpSigma2016.fileLogger;
 
 public class HardwareSigma2016
 {
+    public int groundbrightness;
     /* Public OpMode members. */
     public DcMotor  backLeftMotor = null;
     public DcMotor  backRightMotor = null;
@@ -32,7 +33,7 @@ public class HardwareSigma2016
     public DcMotor  frontRightMotor = null;
     public Servo    pusherL    = null;
     public Servo    pusherR   = null;
-    public LightSensor lineLightSensor = null;
+    public ColorSensor lineLightSensor = null;
     public ColorSensor beaconColorSensor = null;
     public UltrasonicSensor ultrasonicSensor = null;
 
@@ -50,7 +51,7 @@ public class HardwareSigma2016
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap) {
+    public void init(HardwareMap ahwMap) throws InterruptedException {
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -77,9 +78,16 @@ public class HardwareSigma2016
         pusherR.setPosition(PUSHER_R_IN);
 
         // light sensor on the robot bottom
-//        lineLightSensor = hwMap.lightSensor.get("line_light");
+        lineLightSensor = hwMap.colorSensor.get("line_light");
+        lineLightSensor.enableLed(true);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        groundbrightness = lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue();
 
-        // color sensor on beacon pusher
+                // color sensor on beacon pusher
         beaconColorSensor = hwMap.colorSensor.get("beacon_color");
 //        beaconColorSensor.enableLed(true);
 //        try {

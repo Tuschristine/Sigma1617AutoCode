@@ -52,31 +52,31 @@ import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_R_OUT;
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
  * It uses the common Pushbot hardware class to define the drive on the robot.
  * The code is structured as a LinearOpMode
- * <p/>
+ * <p>
  * The code REQUIRES that you DO have encoders on the wheels,
  * otherwise you would use: PushbotAutoDriveByTime;
- * <p/>
+ * <p>
  * This code ALSO requires that you have a Modern Robotics I2C gyro with the name "gyro"
  * otherwise you would use: PushbotAutoDriveByEncoder;
- * <p/>
+ * <p>
  * This code requires that the drive Motors have been configured such that a positive
  * power command moves them forward, and causes the encoders to count UP.
- * <p/>
+ * <p>
  * This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
- * <p/>
+ * <p>
  * In order to calibrate the Gyro correctly, the robot must remain stationary during calibration.
  * This is performed when the INIT button is pressed on the Driver Station.
  * This code assumes that the robot is stationary when the INIT button is pressed.
  * If this is not the case, then the INIT should be performed again.
- * <p/>
+ * <p>
  * Note: in this example, all angles are referenced to the initial coordinate frame set during the
  * the Gyro Calibration process, or whenever the program issues a resetZAxisIntegrator() call on the Gyro.
- * <p/>
+ * <p>
  * The angle of movement/rotation is assumed to be a standardized rotation around the robot Z axis,
  * which means that a Positive rotation is Counter Clock Wise, looking down on the field.
  * This is consistent with the FTC field coordinate conventions set out in the document:
  * ftc_app\doc\tutorial\FTC_FieldCoordinateSystemDefinition.pdf
- * <p/>
+ * <p>
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
@@ -107,14 +107,15 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
     static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
 
-    static final double TARGET_WALL_DISTANCE = 10.0;  // ultrasound sensor reading for x inch away from wall
+    static final double TARGET_WALL_DISTANCE = 12.0;  // ultrasound sensor reading for x inch away from wall
     static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
     static final double WALL_TRACKING_MAX_HEADING_OFFSET = 3;
 
     static final double COLOR_COEFF = 0.3;
 
-    static final int RED_TRESHOLD = 3000;
-    static final int BLUE_TRESHOLD = 12000;
+    static final int RED_TRESHOLD = 2500;
+    static final int BLUE_TRESHOLD = 10000;
+    static final int WHITE_LINE_THRESHOLD = 400;
 
     // Logging utilities
     public static LoggerSigma2016 fileLogger = null;
@@ -123,8 +124,9 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     int ct1 = 0;
     int ct3 = 0;
 
+
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
 
         // create the log file in phone storage
         if (fileLogger == null) {
@@ -190,7 +192,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         gyroTurn(TURN_SPEED, -60.0);               // Turn to -60 Degrees
         fileLogger.logLine("2 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroDrive(DRIVE_SPEED, -49, -60.0); // Drive BWD 49 inches
+        gyroDrive(DRIVE_SPEED, -48, -60.0); // Drive BWD 49 inches
         fileLogger.logLine("3 -- gyro reading=" + gyro.getIntegratedZValue());
 
         gyroTurn(TURN_SPEED, -30.0);               // Turn to -10 degree
@@ -221,11 +223,11 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 //        }
 
         // Drive forward to align with the wall and park at far line
-        // WallTrackingToWhiteLine(0.5, -80, true);
-        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -60, 0.0, true);
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -80, 0, true);
+//        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -60, 0.0, true);
 
 //        // Align up with the beacon lights
-        gyroDrive(DRIVE_SPEED, 1.0, 0.0); // Drive FWD 1 inches
+//        gyroDrive(DRIVE_SPEED, 1.0, 0.0); // Drive FWD 1 inches
 
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
@@ -233,11 +235,15 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         // Drive forward to detect the near line
 //        WallTrackingToWhiteLine(0.5, -72, true);
 //
-        WallTrackingToColorBeacon(WALL_TRACKING_SPEED * 3, 53, 0.0, false);
-        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -18, 0.0, true);
-//
+//        WallTrackingToColorBeacon(WALL_TRACKING_SPEED * 3, 53, 0.0, false);
+//        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -18, 0.0, true);
+
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 60.0, 0, true);
+
+
+
         // Align up with the beacon lights
-        gyroDrive(DRIVE_SPEED, 1.0, 0.0); // Drive BWD 1 inches
+//        gyroDrive(DRIVE_SPEED, 1.0, 0.0); // Drive BWD 1 inches
 //
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
@@ -690,6 +696,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
      */
     public void WallTrackingToWhiteLine(double speed,
                                         double distance,
+                                        double headingAngle,
                                         boolean bLineDetection) {
 
         int newLeftTarget;
@@ -700,11 +707,23 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         double steer = 0;
         double leftSpeed;
         double rightSpeed;
-        double ultraSoundLevel;
-        double blackLightLevel, lightLevel;
-
+        double ultraSoundLevel, angleOffset;
+        int lightlevelR, lightlevelB, lightlevelG;
+        int lightlevel = 0;
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
+
+            // reset encoder
+            robot.frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            // set mode
+            robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.backLeftMotor.setMode(RUN_WITHOUT_ENCODER);
+            robot.backRightMotor.setMode(RUN_WITHOUT_ENCODER);
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int) (distance * COUNTS_PER_INCH);
@@ -739,25 +758,28 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
             robot.backRightMotor.setPower(speed);
             robot.backLeftMotor.setPower(speed);
 
-            // Enable line light sensor LED
-            robot.lineLightSensor.enableLed(true);
-
-            // assuming the wall tracking starts on black tile.
-            blackLightLevel = robot.lineLightSensor.getLightDetected();
-
             // keep looping while we are still active, and BOTH motors are running.
-            while (opModeIsActive() &&
-                    (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
-
+            while (opModeIsActive() )
+//                    &&
+//                    (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
+            {
                 // adjust relative speed based on ultrasound reading.
                 ultraSoundLevel = robot.ultrasonicSensor.getUltrasonicLevel();
                 error = ultraSoundLevel - TARGET_WALL_DISTANCE;
-                if (Math.abs(error) > WALL_DISTANCE_THRESHOLD) {
-                    steer = getSteer(error, P_DRIVE_COEFF);
 
-                    // if driving in reverse, the motor correction also needs to be reversed
-                    if (distance < 0)
-                        steer *= -1.0;
+                angleOffset = gyro.getIntegratedZValue() - headingAngle;
+
+                ct3++;
+                if (ct3 > 1000) {
+                    ct3 = 0;
+
+                    fileLogger.logLine("ultrasoniclevel=" + ultraSoundLevel + " error=" + error + " angleOffset=" + angleOffset);
+                }
+
+                if ((Math.abs(error) >= WALL_DISTANCE_THRESHOLD) &&
+                        ((Math.abs(angleOffset) < WALL_TRACKING_MAX_HEADING_OFFSET) || (error * angleOffset * distance < 0))) {
+
+                    steer = getSteer(error, P_WALL_TRACKING_COEFF);
 
                     leftSpeed = speed - steer;
                     rightSpeed = speed + steer;
@@ -773,22 +795,35 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     robot.frontRightMotor.setPower(rightSpeed);
                     robot.backLeftMotor.setPower(leftSpeed);
                     robot.backRightMotor.setPower(rightSpeed);
+
+                    if (ct3 == 0) {
+                        fileLogger.logLine("error=" + error
+                                + " leftspeed=" + String.format(Double.toString(leftSpeed), "%5.2f")
+                                + " rightSpeed=" + String.format(Double.toString(rightSpeed), "%5.2f"));
+                    }
+                } else {
+                    robot.frontLeftMotor.setPower(speed);
+                    robot.frontRightMotor.setPower(speed);
+                    robot.backRightMotor.setPower(speed);
+                    robot.backLeftMotor.setPower(speed);
                 }
 
                 if (bLineDetection) {
-                    // check light sensor reading. If it reaches the white line then stop robot.
-                    lightLevel = robot.lineLightSensor.getLightDetected();
-                    telemetry.addData("Light level", "%.2f", lightLevel);
 
-                    if (lightLevel > blackLightLevel * 10) {
-                        // White line detected.
+                    lightlevelR = robot.lineLightSensor.blue();
+                    lightlevelB = robot.lineLightSensor.red();
+                    lightlevelG = robot.lineLightSensor.green();
+                    lightlevel = lightlevelB + lightlevelR + lightlevelG;
+
+                    fileLogger.logLine("Light Level " + robot.groundbrightness + " " + lightlevel);
+                    telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
+                    telemetry.update();
+
+                    if(lightlevel > 2.5 * robot.groundbrightness){
+                        //white line detected
                         break;
                     }
                 }
-
-                // Display drive status for the driver.
-                telemetry.addData("Wall_Dist", "%.2f", ultraSoundLevel);
-                telemetry.update();
             }
 
             // Stop all motion;
@@ -1119,7 +1154,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     public void ColorDetectionAndButtonPushing() {
 
         ElapsedTime holdTimer = new ElapsedTime();
-        double holdTime = 100;  // 2 second timeout
+        double holdTime = 2;  // 2 second timeout
         int red, green, blue;
         int redCheck = 0, blueCheck = 0;
 
@@ -1173,7 +1208,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 robot.pusherL.setPosition(PUSHER_L_OUT);
 
                 //wait servo to finish
-                 sleep(1000);
+                sleep(1000);
 
                 // Retrieve the pusher
                 robot.pusherL.setPosition(PUSHER_L_IN);
@@ -1182,7 +1217,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 sleep(500);
 
                 fileLogger.logLine("--- blue light detected and blue button pushed. blueCheck=" + blueCheck);
-                 break;
+                break;
             }
 
             sleep(10);
