@@ -4,6 +4,7 @@ import android.graphics.Color;
 
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LightSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -41,6 +42,8 @@ public class HardwareSigma2016
     public static final double PUSHER_R_IN  =  0.0 ;
     public static final double PUSHER_L_OUT  =  0.0 ;
     public static final double PUSHER_R_OUT  =  1.0 ;
+    public static final double PUSHER_STOP = 0.5;
+
 
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
@@ -62,8 +65,8 @@ public class HardwareSigma2016
         backRightMotor = hwMap.dcMotor.get("motor_4");
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
-        backRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
+        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
 
         // Set all motors to zero power
         backRightMotor.setPower(0);
@@ -76,6 +79,10 @@ public class HardwareSigma2016
         pusherR = hwMap.servo.get("pusher_r");
         pusherL.setPosition(PUSHER_L_IN);
         pusherR.setPosition(PUSHER_R_IN);
+        Thread.sleep(300);
+        pusherL.setPosition(PUSHER_STOP);
+        pusherR.setPosition(PUSHER_STOP);
+
 
         // light sensor on the robot bottom
         lineLightSensor = hwMap.colorSensor.get("line_light");

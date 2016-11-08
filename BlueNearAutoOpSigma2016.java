@@ -47,6 +47,7 @@ import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_L_IN;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_L_OUT;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_R_IN;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_R_OUT;
+import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_STOP;
 
 /**
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
@@ -102,12 +103,12 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     static final double WALL_APPROACHING_SPEED = 0.3;
     static final double WALL_TRACKING_SPEED = 0.06;
 
-    static final double HEADING_THRESHOLD = 3;      // As tight as we can make it with an integer gyro
+    static final double HEADING_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
     static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
 
-    static final double TARGET_WALL_DISTANCE = 12.0;  // ultrasound sensor reading for x inch away from wall
+    static final double TARGET_WALL_DISTANCE = 13.0;  // ultrasound sensor reading for x inch away from wall
     static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
     static final double WALL_TRACKING_MAX_HEADING_OFFSET = 3;
 
@@ -238,6 +239,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 //        WallTrackingToColorBeacon(WALL_TRACKING_SPEED * 3, 53, 0.0, false);
 //        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -18, 0.0, true);
 
+        WallTrackingToWhiteLine(WALL_APPROACHING_SPEED, 45.0, 0, false);
         WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 60.0, 0, true);
 
 
@@ -815,7 +817,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     lightlevelG = robot.lineLightSensor.green();
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
 
-                    fileLogger.logLine("Light Level " + robot.groundbrightness + " " + lightlevel);
+                    //fileLogger.logLine("Light Level " + robot.groundbrightness + " " + lightlevel);
                     telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
                     telemetry.update();
 
@@ -983,9 +985,9 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 if (bBeaconDetection) {
 
                     // check color sensor. If it reaches beacon then stop robot.
-                    red = robot.beaconColorSensor.blue();
+                    red = robot.beaconColorSensor.red();
                     green = robot.beaconColorSensor.green();
-                    blue = robot.beaconColorSensor.red();
+                    blue = robot.beaconColorSensor.blue();
 
                     // any 0 reading might means out of range
                     if (red * green * blue == 0) {
@@ -1164,9 +1166,9 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         holdTimer.reset();
         while (holdTimer.time() < holdTime) {
 
-            red = robot.beaconColorSensor.blue();
+            red = robot.beaconColorSensor.red();
             green = robot.beaconColorSensor.green();
-            blue = robot.beaconColorSensor.red();
+            blue = robot.beaconColorSensor.blue();
 
             telemetry.addData("ColorRGB:: ", "%d %d %d", red, green, blue);
 //            telemetry.update();
@@ -1189,13 +1191,15 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 robot.pusherR.setPosition(PUSHER_R_OUT);
 
                 //wait servo to finish
-                sleep(1000);
+                sleep(1300);
 
                 // Retrieve the pusher
                 robot.pusherR.setPosition(PUSHER_R_IN);
 
                 //wait servo to finish
                 sleep(500);
+
+                robot.pusherR.setPosition(PUSHER_STOP);
 
                 fileLogger.logLine("--- red light detected and blue button pushed. redCheck=" + redCheck);
                 break;
@@ -1208,13 +1212,13 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 robot.pusherL.setPosition(PUSHER_L_OUT);
 
                 //wait servo to finish
-                sleep(1000);
+                sleep(1300);
 
                 // Retrieve the pusher
                 robot.pusherL.setPosition(PUSHER_L_IN);
-
                 //wait servo to finish
                 sleep(500);
+                robot.pusherL.setPosition(PUSHER_STOP);
 
                 fileLogger.logLine("--- blue light detected and blue button pushed. blueCheck=" + blueCheck);
                 break;
