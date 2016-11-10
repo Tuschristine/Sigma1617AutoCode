@@ -30,7 +30,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -49,46 +48,47 @@ import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_L_OUT;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_R_IN;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_R_OUT;
 import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_STOP;
+
 /**
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
  * It uses the common Pushbot hardware class to define the drive on the robot.
  * The code is structured as a LinearOpMode
- * <p/>
+ * <p>
  * The code REQUIRES that you DO have encoders on the wheels,
  * otherwise you would use: PushbotAutoDriveByTime;
- * <p/>
+ * <p>
  * This code ALSO requires that you have a Modern Robotics I2C gyro with the name "gyro"
  * otherwise you would use: PushbotAutoDriveByEncoder;
- * <p/>
+ * <p>
  * This code requires that the drive Motors have been configured such that a positive
  * power command moves them forward, and causes the encoders to count UP.
- * <p/>
+ * <p>
  * This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
- * <p/>
+ * <p>
  * In order to calibrate the Gyro correctly, the robot must remain stationary during calibration.
  * This is performed when the INIT button is pressed on the Driver Station.
  * This code assumes that the robot is stationary when the INIT button is pressed.
  * If this is not the case, then the INIT should be performed again.
- * <p/>
+ * <p>
  * Note: in this example, all angles are referenced to the initial coordinate frame set during the
  * the Gyro Calibration process, or whenever the program issues a resetZAxisIntegrator() call on the Gyro.
- * <p/>
+ * <p>
  * The angle of movement/rotation is assumed to be a standardized rotation around the robot Z axis,
  * which means that a Positive rotation is Counter Clock Wise, looking down on the field.
  * This is consistent with the FTC field coordinate conventions set out in the document:
  * ftc_app\doc\tutorial\FTC_FieldCoordinateSystemDefinition.pdf
- * <p/>
+ * <p>
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name = "Blue Near Auto Op Sigma 2016", group = "Sigma6710BLUE")
+@Autonomous(name = "Red Near Auto Op Sigma 2016", group = "Sigma6710RED")
 //@Disabled
-public class BlueNearAutoOpSigma2016 extends LinearOpMode {
+public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
     /* Declare OpMode members. */
     HardwareSigma2016 robot = new HardwareSigma2016();   // Use a Pushbot's hardware
-    ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
+    ModernRoboticsI2cGyro gyro = null;          // Additional Gyro device
 
     static final double COUNTS_PER_MOTOR_REV = 2250;    // eg: TETRIX Motor Encoder
     static final double DRIVE_GEAR_REDUCTION = 0.666666667;     // This is < 1.0 if geared UP
@@ -101,10 +101,10 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     static final double DRIVE_SPEED = 0.8;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.6;     // Nominal half speed for better accuracy.
     static final double WALL_APPROACHING_SPEED = 0.3;
-    static final double WALL_TRACKING_SPEED = 0.10;
-    static final double WALL_TRAVELING_SPEED = 0.15;
+    static final double WALL_TRACKING_SPEED = 0.06;
+    static final double WALL_TRAVELING_SPEED = 0.09;
 
-    static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
+    static final double HEADING_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
     static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
@@ -136,7 +136,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 fileLogger = new LoggerSigma2016("ctu_log.txt");
                 String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
 
-                fileLogger.logLine("--BlueNear log@" + currentDateTimeString + "--");
+                fileLogger.logLine("--RedNear log@" + currentDateTimeString + "--");
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -148,10 +148,19 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         * Initialize the standard drive system variables.
         * The init() method of the hardware class does most of the work here
         */
+        //telemetry.addData("10", "---------------");
+        //telemetry.update();
         robot.init(hardwareMap);
-
+        telemetry.addData("20", "---------------");
+        telemetry.update();
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
 
+        if(gyro == null){
+            fileLogger.close();
+            return;
+        }
+
+//        telemetry.addData("30", "---------------");
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
         robot.frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -160,10 +169,10 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
         // Send telemetry message to alert driver that we are calibrating;
         telemetry.addData(">", "Calibrating Gyro");    //
-        telemetry.update();
-
+        //telemetry.update();
+//        telemetry.addData("40", "---------------");
         gyro.calibrate();
-
+//        telemetry.addData("50", "---------------");
         // make sure the gyro is calibrated before continuing
         while (!isStopRequested() && gyro.isCalibrating()) {
             sleep(50);
@@ -188,16 +197,16 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         // Put a hold after each turn
         fileLogger.logLine("0 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroDrive(DRIVE_SPEED, -18.0, 0.0); // Drive BWD 30 inches
+        gyroDrive(DRIVE_SPEED, 18.0, 0.0); // Drive BWD 30 inches
         fileLogger.logLine("1 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroTurn(TURN_SPEED, -60.0);               // Turn to -60 Degrees
+        gyroTurn(TURN_SPEED, 60.0);               // Turn to -60 Degrees
         fileLogger.logLine("2 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroDrive(DRIVE_SPEED, -48, -60.0); // Drive BWD 49 inches
+        gyroDrive(DRIVE_SPEED, 48, 60.0); // Drive BWD 49 inches
         fileLogger.logLine("3 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroTurn(TURN_SPEED, -30.0);               // Turn to -10 degree
+        gyroTurn(TURN_SPEED, 30.0);               // Turn to -10 degree
         fileLogger.logLine("4 -- gyro reading=" + gyro.getIntegratedZValue());
 
         UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -80, -10.0);
@@ -225,7 +234,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 //        }
 
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -80, 0, true);
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 80, 0, true);
 //        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -60, 0.0, true);
 
 //        // Align up with the beacon lights
@@ -240,8 +249,8 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 //        WallTrackingToColorBeacon(WALL_TRACKING_SPEED * 3, 53, 0.0, false);
 //        WallTrackingToColorBeacon(WALL_TRACKING_SPEED, -18, 0.0, true);
 
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 45.0, 0, false);
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 36.0, 0, true);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -45.0, 0, false);
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -36.0, 0, true);
 
         // Align up with the beacon lights
 //        gyroDrive(DRIVE_SPEED, 1.0, 0.0); // Drive BWD 1 inches
@@ -251,13 +260,13 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
         /*------ drive back to the vortex ------*/
 
-        gyroDrive(DRIVE_SPEED, -36.00, 90.0); // 90 degree
+        gyroDrive(DRIVE_SPEED, 36.00, -90.0); // Drive BWD 50 inches heading -45 degree
         fileLogger.logLine("5 -- gyro reading=" + gyro.getIntegratedZValue());
 
-//        gyroTurn(TURN_SPEED, 90.0);         // Turn  CCW to -45 Degrees
-//        fileLogger.logLine("6 -- gyro reading=" + gyro.getIntegratedZValue());
+ //       gyroTurn(TURN_SPEED, 90.0);         // Turn  CCW to -45 Degrees
+ //       fileLogger.logLine("6 -- gyro reading=" + gyro.getIntegratedZValue());
 
-        gyroDrive(DRIVE_SPEED, -36.00, 115); // 135 degree
+        gyroDrive(DRIVE_SPEED, 36.00, -135.0); // Drive BWD 30 inches heading 45 degree
         fileLogger.logLine("7 -- gyro reading=" + gyro.getIntegratedZValue());
 
         // All work are finished. Close the log file.
@@ -826,11 +835,11 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                         robot.backLeftMotor.setPower(leftSpeed);
                         robot.backRightMotor.setPower(rightSpeed);
                     } else {
-                        robot.frontLeftMotor.setPower(speed);
-                        robot.frontRightMotor.setPower(speed);
-                        robot.backRightMotor.setPower(speed);
-                        robot.backLeftMotor.setPower(speed);
-                    }
+                    robot.frontLeftMotor.setPower(speed);
+                    robot.frontRightMotor.setPower(speed);
+                    robot.backRightMotor.setPower(speed);
+                    robot.backLeftMotor.setPower(speed);
+                }
                 }
 
                 if (bLineDetection) {
@@ -844,7 +853,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
                     telemetry.update();
 
-                    if (lightlevel > 2.5 * robot.groundbrightness) {
+                    if(lightlevel > 2.5 * robot.groundbrightness){
                         //white line detected
                         break;
                     }
@@ -1184,7 +1193,6 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         int red, green, blue;
         int redCheck = 0, blueCheck = 0;
 
-        robot.beaconColorSensor.resetDeviceConfigurationForOpMode();
         robot.beaconColorSensor.enableLed(false); //led OFF
 
         // keep looping while we have time remaining.
@@ -1202,14 +1210,14 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
             fileLogger.logLine("Blue " + robot.beaconColorSensor.blue());
             fileLogger.logLine("Green " + robot.beaconColorSensor.green());
 
-            if ((red > blue + 20) && (red > green + 20)) {
-                redCheck++;
+            if ((red > blue+20) && (red > green+20)) {
+                redCheck ++;
             } else {
                 redCheck = 0;
             }
 
-            if ((blue > red + 5) && (blue > green + 5)) {
-                blueCheck++;
+            if ((blue > red+5) && (blue > green+5)) {
+                blueCheck ++;
             } else {
                 blueCheck = 0;
             }
@@ -1248,7 +1256,6 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 robot.pusherL.setPosition(PUSHER_L_IN);
                 //wait servo to finish
                 sleep(1300);
-
                 robot.pusherL.setPosition(PUSHER_STOP);
 
                 fileLogger.logLine("--- blue light detected and blue button pushed. blueCheck=" + blueCheck + " redCheck=" + redCheck);
