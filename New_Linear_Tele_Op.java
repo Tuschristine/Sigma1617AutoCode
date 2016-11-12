@@ -34,13 +34,16 @@ public class New_Linear_Tele_Op extends LinearOpMode{
     boolean down;
     double beaconLPos;
     double beaconRPos;
+    int increment;
 
     HardwareSigma2016 robot = new HardwareSigma2016();   // Use a Pushbot's hardware
 
     @Override
     public void runOpMode() {
         myinit();
+        increment = 5;
         waitForStart();
+
         while (opModeIsActive()) {
 
             leftThrottle = gamepad1.right_stick_y;
@@ -57,10 +60,135 @@ public class New_Linear_Tele_Op extends LinearOpMode{
             right = (float) scaleInput(right);
             left = (float) scaleInput(left);
 
-            frontLeft.setPower(left);
-            backLeft.setPower(left);
-            frontRight.setPower(-right);
-            backRight.setPower(-right);
+            if (increment == 11){
+                frontLeft.setPower(left);
+                backLeft.setPower(left);
+                frontRight.setPower(-right);
+                backRight.setPower(-right);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 10){
+                frontLeft.setPower(left);
+                backLeft.setPower(left);
+                frontRight.setPower(-right);
+                backRight.setPower(-right);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 9){
+                frontLeft.setPower(left * 0.9);
+                backLeft.setPower(left * 0.9);
+                frontRight.setPower(-right * 0.9);
+                backRight.setPower(-right * 0.9);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 8){
+                frontLeft.setPower(left * 0.8);
+                backLeft.setPower(left * 0.8);
+                frontRight.setPower(-right * 0.8);
+                backRight.setPower(-right * 0.8);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 7){
+                frontLeft.setPower(left * 0.7);
+                backLeft.setPower(left * 0.7);
+                frontRight.setPower(-right * 0.7);
+                backRight.setPower(-right * 0.7);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 6){
+                frontLeft.setPower(left * 0.6);
+                backLeft.setPower(left * 0.6);
+                frontRight.setPower(-right * 0.6);
+                backRight.setPower(-right * 0.6);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 5){
+                frontLeft.setPower(left * 0.5);
+                backLeft.setPower(left * 0.5);
+                frontRight.setPower(-right * 0.5);
+                backRight.setPower(-right * 0.5);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 4){
+                frontLeft.setPower(left * 0.4);
+                backLeft.setPower(left * 0.4);
+                frontRight.setPower(-right * 0.4);
+                backRight.setPower(-right * 0.4);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 3){
+                frontLeft.setPower(left * 0.3);
+                backLeft.setPower(left * 0.3);
+                frontRight.setPower(-right * 0.3);
+                backRight.setPower(-right * 0.3);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            if (increment == 2){
+                frontLeft.setPower(left * 0.3);
+                backLeft.setPower(left * 0.3);
+                frontRight.setPower(-right * 0.3);
+                backRight.setPower(-right * 0.3);
+                telemetry.addData("increment:", increment);
+                telemetry.update();
+            }
+
+            /**
+             * The tolerance for the variable
+             */
+
+            if (increment < 3){
+                increment = 3;
+            }
+
+            if (increment > 10){
+                increment = 10;
+            }
+
+            if(gamepad1.right_trigger == 1) {
+                increment -= 1;
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (gamepad1.left_trigger == 1){
+                increment += 1;
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (gamepad1.left_bumper){
+                increment  = 10;
+            }
+
+            if (gamepad1.right_bumper){
+                increment  = 5;
+            }
+
+
 
             if(y){
                 beaconR.setPosition(1.0);
