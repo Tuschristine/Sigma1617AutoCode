@@ -171,9 +171,9 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
         // Put a hold after each turn
         gyroDrive(DRIVE_SPEED, -18.0, 0.0); // Drive BWD 30 inches
 
-        gyroTurn(TURN_SPEED, -60.0);               // Turn to -60 Degrees
+        gyroTurn(TURN_SPEED, -55.0);               // Turn to -60 Degrees
 
-        gyroDrive(DRIVE_SPEED, -46, -60.0); // Drive BWD 49 inches
+        gyroDrive(DRIVE_SPEED, -47, -60.0); // Drive BWD 49 inches
 
         gyroTurn(TURN_SPEED, -30.0);               // Turn to -10 degree
 
@@ -847,11 +847,13 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
             System.out.println("--BlueNear log-- R:G:B = " + red + ":" + green + ":" + blue);
 
-            if ((red > blue + 20) && (red > green + 20)) {
+            if ((red > blue + 20) && (red > green + 20)){
                 redCheck++;
-            } else {
+            }
+            else {
                 redCheck = 0;
             }
+
 
             if ((blue > red + 5) && (blue > green + 5)) {
                 blueCheck++;
