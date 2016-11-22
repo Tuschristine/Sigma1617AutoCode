@@ -31,8 +31,11 @@ public class HardwareSigma2016
     public Servo    pusherL    = null;
     public Servo    pusherR   = null;
     public ColorSensor lineLightSensor = null;
+    public ColorSensor front_light = null;
+    public ColorSensor back_light = null;
     public ColorSensor beaconColorSensor = null;
-    public UltrasonicSensor ultrasonicSensor = null;
+    public UltrasonicSensor ultra_front = null;
+    public UltrasonicSensor ultra_back = null;
 
     public static final double PUSHER_L_IN  =  1.0 ;
     public static final double PUSHER_R_IN  =  0.0 ;
@@ -94,8 +97,15 @@ public class HardwareSigma2016
         beaconColorSensor = hwMap.colorSensor.get("beacon_color");
         beaconColorSensor.enableLed(false);
 
+        front_light = hwMap.colorSensor.get("front_light");
+        beaconColorSensor.enableLed(false);
+
+        back_light = hwMap.colorSensor.get("back_light");
+        beaconColorSensor.enableLed(false);
+
         // ultrasonic sensor
-        ultrasonicSensor = hwMap.ultrasonicSensor.get("ultrasonic");
+        ultra_back = hwMap.ultrasonicSensor.get("ultra_back");
+        ultra_front = hwMap.ultrasonicSensor.get("ultra_front");
 
         System.out.println("--------------- Sigma2016, hardware is initialized!");
     }

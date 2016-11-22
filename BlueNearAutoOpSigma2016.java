@@ -90,7 +90,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
 
     static final double COUNTS_PER_MOTOR_REV = 2250;    // eg: TETRIX Motor Encoder
-    static final double DRIVE_GEAR_REDUCTION = 0.666666667;     // This is < 1.0 if geared UP
+    static final double DRIVE_GEAR_REDUCTION = 1;     // This is < 1.0 if geared UP
     static final double WHEEL_DIAMETER_INCHES = 5.0;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
@@ -573,7 +573,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                 robot.backLeftMotor.setPower(leftSpeed);
                 robot.backRightMotor.setPower(rightSpeed);
 
-                ultraSoundLevel = robot.ultrasonicSensor.getUltrasonicLevel();
+                ultraSoundLevel = robot.ultra_front.getUltrasonicLevel();
 
                 // handles abnormal ultrasonic reading
                 if (ultraSoundLevel == 0) {
@@ -709,7 +709,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
             while (opModeIsActive() &&
                     (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
                 // adjust relative speed based on ultrasound reading.
-                ultraSoundLevel = robot.ultrasonicSensor.getUltrasonicLevel();
+                ultraSoundLevel = robot.ultra_front.getUltrasonicLevel();
                 error = ultraSoundLevel - TARGET_WALL_DISTANCE;
 
                 angleOffset = gyro.getIntegratedZValue() - headingAngle;

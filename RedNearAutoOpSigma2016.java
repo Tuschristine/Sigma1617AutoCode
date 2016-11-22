@@ -100,8 +100,9 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     static final double DRIVE_SPEED = 0.8;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.6;     // Nominal half speed for better accuracy.
     static final double WALL_APPROACHING_SPEED = 0.3;
-    static final double WALL_TRACKING_SPEED = 0.06;
-    static final double WALL_TRAVELING_SPEED = 0.1;
+    static final double WALL_TRACKING_SPEED = 0.2;
+    static final double LINE_TRACKING_SPEED = 0.06;
+    static final double WALL_TRAVELING_SPEED = 0.3;
 
     static final double HEADING_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
@@ -169,15 +170,15 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Put a hold after each turn
-        gyroDrive(DRIVE_SPEED, 18.0, 0.0); // Drive BWD 30 inches
+        gyroDrive(DRIVE_SPEED, -18.0, 0.0); // Drive BWD 30 inches
 
-        gyroTurn(TURN_SPEED, 55.0);               // Turn to -60 Degrees
+        gyroTurn(TURN_SPEED, -55.0);               // Turn to -60 Degrees
 
-        gyroDrive(DRIVE_SPEED, 47, 60.0); // Drive BWD 49 inches
+        gyroDrive(DRIVE_SPEED, -47, -60.0); // Drive BWD 49 inches
 
-        gyroTurn(TURN_SPEED, 30.0);               // Turn to -10 degree
+        gyroTurn(TURN_SPEED, -30.0);               // Turn to -10 degree
 
-        UltraSonicReachTheWall(WALL_APPROACHING_SPEED, 80, 10.0);
+        UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -80, -10.0);
 
         gyroTurn(TURN_SPEED, 0.0);               // Turn to 0 degree
 
@@ -201,14 +202,15 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 //        }
 
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 80, 0, true);
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -80, 0, true);
 
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
 
         // Drive forward to detect the near line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -45.0, 0, false);
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -36.0, 0, true);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 45.0, 0, false);
+        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 36.0, 0.0, true);
+
 
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
@@ -573,7 +575,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 robot.backLeftMotor.setPower(leftSpeed);
                 robot.backRightMotor.setPower(rightSpeed);
 
-                ultraSoundLevel = robot.ultrasonicSensor.getUltrasonicLevel();
+                ultraSoundLevel = robot.ultra_back.getUltrasonicLevel();
 
                 // handles abnormal ultrasonic reading
                 if (ultraSoundLevel == 0) {
@@ -709,7 +711,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             while (opModeIsActive() &&
                     (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
                 // adjust relative speed based on ultrasound reading.
-                ultraSoundLevel = robot.ultrasonicSensor.getUltrasonicLevel();
+                ultraSoundLevel = robot.ultra_back.getUltrasonicLevel();
                 error = ultraSoundLevel - TARGET_WALL_DISTANCE;
 
                 angleOffset = gyro.getIntegratedZValue() - headingAngle;
@@ -775,55 +777,79 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                         robot.backLeftMotor.setPower(leftSpeed);
                         robot.backRightMotor.setPower(rightSpeed);
                     } else {
-                    robot.frontLeftMotor.setPower(speed);
-                    robot.frontRightMotor.setPower(speed);
-                    robot.backRightMotor.setPower(speed);
-                    robot.backLeftMotor.setPower(speed);
-                }
+                        robot.frontLeftMotor.setPower(speed);
+                        robot.frontRightMotor.setPower(speed);
+                        robot.backRightMotor.setPower(speed);
+                        robot.backLeftMotor.setPower(speed);
+                    }
                 }
 
                 if (bLineDetection) {
 
-                    lightlevelR = robot.lineLightSensor.blue();
-                    lightlevelB = robot.lineLightSensor.red();
-                    lightlevelG = robot.lineLightSensor.green();
+                    lightlevelR = robot.back_light.blue();
+                    lightlevelB = robot.back_light.red();
+                    lightlevelG = robot.back_light.green();
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
 
-                    if (ct3 == 0){
-                        System.out.println("--RedNear log-- Light Level " + robot.groundbrightness + " " + lightlevel);
-                    }
                     telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
                     telemetry.update();
 
-                    if(lightlevel > 2.5 * robot.groundbrightness){
-                        //white line detected
-                        break;
+                    if (lightlevel > 2.5 * robot.groundbrightness) {
+                        LineDetection(LINE_TRACKING_SPEED, 0.0, false, true);
                     }
                 }
             }
+        }
+    }
 
-            // Stop all motion;
-            robot.frontLeftMotor.setPower(0);
-            robot.frontRightMotor.setPower(0);
-            robot.backLeftMotor.setPower(0);
-            robot.backRightMotor.setPower(0);
+    public void stopAllMotion(double distance) {
+        // Stop all motion;
+        robot.frontLeftMotor.setPower(0);
+        robot.frontRightMotor.setPower(0);
+        robot.backLeftMotor.setPower(0);
+        robot.backRightMotor.setPower(0);
 
-            // Turn off RUN_TO_POSITION
-            robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            if (distance < 0) {
-                if (robot.backLeftMotor.getDirection() == DcMotorSimple.Direction.FORWARD) {
-                    robot.backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-                } else {
-                    robot.backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-                }
-
-                if (robot.backRightMotor.getDirection() == DcMotorSimple.Direction.FORWARD) {
-                    robot.backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-                } else {
-                    robot.backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-                }
+        // Turn off RUN_TO_POSITION
+        robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if (distance < 0) {
+            if (robot.backLeftMotor.getDirection() == DcMotorSimple.Direction.FORWARD) {
+                robot.backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            } else {
+                robot.backLeftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
             }
+
+            if (robot.backRightMotor.getDirection() == DcMotorSimple.Direction.FORWARD) {
+                robot.backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            } else {
+                robot.backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            }
+        }
+    }
+
+
+
+    public void LineDetection(double speed,
+                              double headingangle,
+                              boolean bLineDetection1,
+                              boolean bLineDetection2) {
+        if (bLineDetection2) {
+
+            int lightlevelR, lightlevelB, lightlevelG;
+            int lightlevel = 0;
+
+            lightlevelR = robot.front_light.blue();
+            lightlevelB = robot.front_light.red();
+            lightlevelG = robot.front_light.green();
+            lightlevel = lightlevelB + lightlevelR + lightlevelG;
+
+            if (lightlevel > 2.5 * robot.groundbrightness) {
+                return;
+            }
+
+            telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
+            telemetry.update();
+
         }
     }
 
@@ -847,14 +873,14 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
             System.out.println("--BlueNear log-- R:G:B = " + red + ":" + green + ":" + blue);
 
-            if ((red > blue+20) && (red > green+20)) {
-                redCheck ++;
+            if ((red > blue + 20) && (red > green + 20)) {
+                redCheck++;
             } else {
                 redCheck = 0;
             }
 
             if ((blue > red + 5) && (blue > green)) {
-                blueCheck ++;
+                blueCheck++;
             } else {
                 blueCheck = 0;
             }
