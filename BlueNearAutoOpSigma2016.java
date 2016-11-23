@@ -90,18 +90,18 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
 
     static final double COUNTS_PER_MOTOR_REV = 2250;    // eg: TETRIX Motor Encoder
-    static final double DRIVE_GEAR_REDUCTION = 1;     // This is < 1.0 if geared UP
-    static final double WHEEL_DIAMETER_INCHES = 5.0;     // For figuring circumference
+    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
+    static final double WHEEL_DIAMETER_INCHES = 3.75;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
-    static final double DRIVE_SPEED = 0.8;     // Nominal speed for better accuracy.
+    static final double DRIVE_SPEED = 1.0;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.6;     // Nominal half speed for better accuracy.
-    static final double WALL_APPROACHING_SPEED = 0.3;
-    static final double WALL_TRACKING_SPEED = 0.06;
-    static final double WALL_TRAVELING_SPEED = 0.1;
+    static final double WALL_APPROACHING_SPEED = 0.5;
+    static final double LINE_DETECTION_SPEED = 0.06;
+    static final double WALL_TRAVELING_SPEED = 0.3;
 
     static final double HEADING_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
@@ -110,7 +110,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 
     static final double TARGET_WALL_DISTANCE = 13.0;  // ultrasound sensor reading for x inch away from wall
     static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
-    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 3;
+    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 6.0;
 
     static final int RED_TRESHOLD = 5;
     static final int BLUE_TRESHOLD = 5;
@@ -201,14 +201,15 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
 //        }
 
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, -80, 0, true);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true);
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18.0, 0, true);
 
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
 
         // Drive forward to detect the near line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 45.0, 0, false);
-        WallTrackingToWhiteLine(WALL_TRACKING_SPEED, 36.0, 0, true);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 80.0, 0, false);
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, 18.0, 0, true);
 
         // run the beacon light color detection and button pushing procedure
         ColorDetectionAndButtonPushing();
@@ -727,7 +728,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     steer = getSteer(error, P_WALL_TRACKING_COEFF);
 
                     // normalize steer based on wall tracking speed
-                    steer = steer * speed / WALL_TRACKING_SPEED;
+                    steer = steer / speed;
 
                     leftSpeed = speed - steer;
                     rightSpeed = speed + steer;
@@ -754,7 +755,7 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                         steer = getSteer(angleOffset, P_WALL_TRACKING_COEFF);
 
                         // normalize steer based on wall tracking speed
-                        steer = steer * speed / WALL_TRACKING_SPEED;
+                        steer = steer / speed;
 
                         // if driving in forward, the motor correction also needs to be reversed
                         if (distance > 0)
@@ -789,16 +790,6 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
                     lightlevelG = robot.lineLightSensor.green();
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
 
-                    if (ct3 == 0){
-                        System.out.println("--BlueNear log-- Light Level " + robot.groundbrightness + " " + lightlevel);
-                    }
-                    telemetry.addData("Light Level :: ", "%d,%d", robot.groundbrightness, lightlevel);
-                    telemetry.update();
-
-                    if (lightlevel > 2.5 * robot.groundbrightness) {
-                        //white line detected
-                        break;
-                    }
                 }
             }
 
