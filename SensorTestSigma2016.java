@@ -90,11 +90,11 @@ public class SensorTestSigma2016 extends LinearOpMode {
         // wait for the start button to be pressed.
         waitForStart();
 
-        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeftMotor.setTargetPosition(2250);
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeftMotor.setPower(0.1);
+//        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        frontLeftMotor.setTargetPosition(1125);  // one whole turn
+//        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        frontLeftMotor.setPower(0.1);
 
         // loop and read the RGB data.
         // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
