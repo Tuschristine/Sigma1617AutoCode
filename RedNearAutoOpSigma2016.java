@@ -93,7 +93,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 1.0;     // Nominal speed for better accuracy.
-    static final double TURN_SPEED = 0.4;     // Nominal half speed for better accuracy.
+    static final double TURN_SPEED = 0.3;     // Nominal half speed for better accuracy.
     static final double WALL_APPROACHING_SPEED = 0.4;
     static final double LINE_DETECTION_SPEED = 0.12;
     static final double WALL_TRAVELING_SPEED = 0.35;
@@ -101,7 +101,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
     static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
-    static final double TARGET_WALL_DISTANCE = 15.0;  // ultrasound sensor reading for x inch away from wall
+    static final double TARGET_WALL_DISTANCE = 13.0;  // ultrasound sensor reading for x inch away from wall
     static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
     static final double WALL_TRACKING_MAX_HEADING_OFFSET = 6.0;
     static final int RED_TRESHOLD = 5;
@@ -170,7 +170,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 //        StopAllMotion(-1);
 //        gyroTurn(TURN_SPEED, -55.0);               // Turn to -60 Degrees
 //        StopAllMotion(-1);
-        gyroDrive(DRIVE_SPEED, -48, 50.0); // Drive BWD 63 inches
+        gyroDrive(DRIVE_SPEED, -49, 50.0); // Drive BWD 63 inches
         if (!opModeIsActive())
         {
             StopAllMotion();
@@ -178,8 +178,8 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         }
 
 //        StopAllMotion();
-    //    gyroTurn(TURN_SPEED, 20.0);               // Turn to -10 degree
-//        StopAllMotion(-1);
+        gyroTurn(TURN_SPEED, 20.0);               // Turn to -10 degree
+
         UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -60, 15.0);
         if (!opModeIsActive())
         {
@@ -189,26 +189,22 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
 //        StopAllMotion();
 
-        gyroTurn(TURN_SPEED, 0.0);               // Turn to 0 degree
+        gyroTurn(TURN_SPEED, 5.0);               // Turn to 0 degree
         if (!opModeIsActive())
         {
             StopAllMotion();
             return;
         }
-
-        telemetry.addData("Initial Path", "Complete");
-        telemetry.update();
 
         /* ------ ultrasonic wall tracker + white line detection ------- */
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true, BACK_LIGHT_SENSOR);
+         WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true, BACK_LIGHT_SENSOR);
         if (!opModeIsActive())
         {
             StopAllMotion();
             return;
         }
 
-//        StopAllMotion();
         WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18, 0, true, CENTER_LIGHT_SENSOR);
         if (!opModeIsActive())
         {
@@ -216,9 +212,8 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             return;
         }
 
-        StopAllMotion();
-
         // run the beacon light color detection and button pushing procedure
+        StopAllMotion();
         ColorDetectionAndButtonPushing();
         if (!opModeIsActive())
         {
@@ -241,9 +236,8 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             return;
         }
 
-        StopAllMotion();
-
         // run the beacon light color detection and button pushing procedure
+        StopAllMotion();
         ColorDetectionAndButtonPushing();
         if (!opModeIsActive())
         {
@@ -252,14 +246,14 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         }
 
         /*------ drive to the center vortex ------*/
-        gyroDrive(DRIVE_SPEED, -36.00, -90.0); // -90 degree
+        gyroDrive(DRIVE_SPEED, -30.00, -90.0); // -90 degree
         if (!opModeIsActive())
         {
             StopAllMotion();
             return;
         }
 
-        gyroDrive(DRIVE_SPEED, -32.00, -110.0); // -115 degree
+        gyroDrive(DRIVE_SPEED, -28.00, -110.0); // -115 degree
 
         // Finally, stop
         StopAllMotion();
@@ -640,7 +634,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 } else if (ultraSoundLevel == 255) {
                     // error reading. Ignore.
                     continue;
-                } else if (ultraSoundLevel <= TARGET_WALL_DISTANCE+4) {
+                } else if (ultraSoundLevel <= TARGET_WALL_DISTANCE+2) {
 
                     System.out.println("--RedNear log-- wall reached -- ultrasound level=" + ultraSoundLevel);
 
@@ -773,7 +767,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
                 if (ultraSoundLevel == 255) {
                     // error reading. Ignore.
-                    continue;
+                    continue;          
                 }
 
                 // adjust relative speed based on ultrasound reading.
