@@ -90,12 +90,11 @@ public class SensorTestSigma2016 extends LinearOpMode {
         // wait for the start button to be pressed.
         waitForStart();
 
-//        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        frontLeftMotor.setTargetPosition(1125);  // one whole turn
-//        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        frontLeftMotor.setPower(0.1);
-
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftMotor.setTargetPosition(1310);  // one whole turn
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeftMotor.setPower(0.05);
         // loop and read the RGB data.
         // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
         while (opModeIsActive()) {
@@ -106,8 +105,15 @@ public class SensorTestSigma2016 extends LinearOpMode {
             telemetry.addData("middle: ", "%d", lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue());
             telemetry.addData("u_front: ", "%f", ultra_front.getUltrasonicLevel());
             telemetry.addData("u_back: ", "%f", ultra_back.getUltrasonicLevel());
+            telemetry.addData("Motor Pos: ", "%d", frontLeftMotor.getCurrentPosition());
 
             telemetry.update();
+
+
+            if(Math.abs(frontLeftMotor.getCurrentPosition() - frontLeftMotor.getTargetPosition()) <= 4)
+            {
+                frontLeftMotor.setPower(0.0);
+            }
         }
     }
 }

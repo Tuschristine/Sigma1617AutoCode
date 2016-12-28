@@ -25,9 +25,9 @@ public class HardwareSigma2016
     public int groundbrightness_center=0;
     public int groundbrightness_front=0;
     public int groundbrightness_back=0;
-    public final double FRONT_LIGHT_THRESH = 2.5;
-    public final double BACK_LIGHT_THRESH = 2.5;
-    public final double CENTER_LIGHT_THRESH = 2.5;
+    public final double FRONT_LIGHT_THRESH = 1.5;
+    public final double BACK_LIGHT_THRESH = 1.5;
+    public final double CENTER_LIGHT_THRESH = 2.0;
 
     /* Public OpMode members. */
     public DcMotor  backLeftMotor = null;
@@ -113,7 +113,9 @@ public class HardwareSigma2016
 
         // ultrasonic sensor
         ultra_back = hwMap.ultrasonicSensor.get("ultra_back");
+        ultra_back.getUltrasonicLevel();  // make ultrasonic sensor ready and give stable output when needed.
         ultra_front = hwMap.ultrasonicSensor.get("ultra_front");
+        ultra_front.getUltrasonicLevel(); // make ultrasonic sensor ready and give stable output when needed.
 
         System.out.println("--------------- Sigma2016, hardware is initialized!");
     }

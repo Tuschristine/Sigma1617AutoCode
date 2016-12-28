@@ -46,16 +46,16 @@ public class New_Linear_Tele_Op extends LinearOpMode{
 
         while (opModeIsActive()) {
 
-            leftThrottle = gamepad1.right_stick_y;
-            rightThrottle = gamepad1.left_stick_y;
+            leftThrottle = gamepad1.left_stick_y;
+            rightThrottle = gamepad1.right_stick_y;
 
             a = gamepad2.a;
             y = gamepad2.y;
             up = gamepad2.dpad_up;
             down = gamepad2.dpad_down;
 
-            float right = rightThrottle;
-            float left = leftThrottle;
+            float right = -rightThrottle;
+            float left = -leftThrottle;
 
             right = (float) scaleInput(right);
             left = (float) scaleInput(left);

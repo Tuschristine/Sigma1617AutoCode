@@ -90,6 +90,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     static final double WHEEL_DIAMETER_INCHES = 3.75;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
+
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 1.0;     // Nominal speed for better accuracy.
@@ -103,12 +104,14 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double TARGET_WALL_DISTANCE = 13.0;  // ultrasound sensor reading for x inch away from wall
     static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
-    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 6.0;
+    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 3.0;
+
     static final int RED_TRESHOLD = 5;
     static final int BLUE_TRESHOLD = 5;
     static final int CENTER_LIGHT_SENSOR = 0;
     static final int FRONT_LIGHT_SENSOR = 1;
     static final int BACK_LIGHT_SENSOR = 2;
+
     /* Declare OpMode members. */
     HardwareSigma2016 robot = null;
     ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
@@ -166,18 +169,13 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Put a hold after each turn
-//        gyroDrive(DRIVE_SPEED, -18.0, 0.0); // Drive BWD 30 inches
-//        StopAllMotion(-1);
-//        gyroTurn(TURN_SPEED, -55.0);               // Turn to -60 Degrees
-//        StopAllMotion(-1);
-        gyroDrive(DRIVE_SPEED, -49, 50.0); // Drive BWD 63 inches
+        gyroDrive(DRIVE_SPEED, -51, 50.0); // Drive BWD 63 inches
         if (!opModeIsActive())
         {
             StopAllMotion();
             return;
         }
 
-//        StopAllMotion();
         gyroTurn(TURN_SPEED, 20.0);               // Turn to -10 degree
 
         UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -60, 15.0);
@@ -186,8 +184,6 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             StopAllMotion();
             return;
         }
-
-//        StopAllMotion();
 
         gyroTurn(TURN_SPEED, 5.0);               // Turn to 0 degree
         if (!opModeIsActive())
@@ -198,7 +194,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
         /* ------ ultrasonic wall tracker + white line detection ------- */
         // Drive forward to align with the wall and park at far line
-         WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true, BACK_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true, BACK_LIGHT_SENSOR);
         if (!opModeIsActive())
         {
             StopAllMotion();
@@ -211,6 +207,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             StopAllMotion();
             return;
         }
+
+        // make ultrasonic sensor ready and give stable output when needed.
+        robot.ultra_back.getUltrasonicLevel();
+        robot.ultra_front.getUltrasonicLevel();
 
         // run the beacon light color detection and button pushing procedure
         StopAllMotion();
@@ -253,7 +253,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             return;
         }
 
-        gyroDrive(DRIVE_SPEED, -28.00, -110.0); // -115 degree
+        gyroDrive(DRIVE_SPEED, -33.00, -103.0); // -115 degree
 
         // Finally, stop
         StopAllMotion();
@@ -534,7 +534,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         double steer;
         double leftSpeed;
         double rightSpeed;
-        double ultraSoundLevel, oldUltraLevel;
+        double ultraSoundLevel;
         double blackLightLevel, lightLevel;
 
         // Ensure that the opmode is still active
@@ -767,12 +767,12 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
                 if (ultraSoundLevel == 255) {
                     // error reading. Ignore.
-                    continue;          
+                    continue;
                 }
 
                 // adjust relative speed based on ultrasound reading.
                 if ((Math.abs(error) >= WALL_DISTANCE_THRESHOLD) &&
-                        ((Math.abs(angleOffset) < WALL_TRACKING_MAX_HEADING_OFFSET) || (error * angleOffset * distance < 0))) {
+                        ((Math.abs(angleOffset) < WALL_TRACKING_MAX_HEADING_OFFSET) || (error * angleOffset * distance > 0))) {
 
                     steer = getSteer(error, P_WALL_TRACKING_COEFF);
 
