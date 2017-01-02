@@ -48,53 +48,37 @@ import com.qualcomm.robotcore.hardware.UltrasonicSensor;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@Autonomous(name = "Sensors", group = "Sigma6710")
+@Autonomous(name = "FrontLeftMotor", group = "Sigma6710")
 //@Disabled
-public class SensorTestSigma2016 extends LinearOpMode {
+public class FrontLeftMotorTestSigma2016 extends LinearOpMode {
 
-    ColorSensor beacon_color = null;  // Hardware Device Object
-    ColorSensor lineLightSensor = null;
-    ColorSensor front_light = null;
-    ColorSensor back_light = null;
-
-    UltrasonicSensor ultra_front = null;
-    UltrasonicSensor ultra_back = null;
+    DcMotor motor = null;
 
     @Override
     public void runOpMode() {
 
-
-        // get a reference to our ColorSensor object.
-        beacon_color = hardwareMap.colorSensor.get("beacon_color");
-        // turn the LED on in the beginning, just so user will know that the sensor is active.
-        beacon_color.enableLed(false);
-
-        front_light = hardwareMap.colorSensor.get("front_light");
-        front_light.enableLed(true);
-
-        back_light = hardwareMap.colorSensor.get("back_light");
-        back_light.enableLed(true);
-
-        lineLightSensor = hardwareMap.colorSensor.get("line_light");
-        lineLightSensor.enableLed(true);
-
-        // ultrasonic sensor
-        ultra_back = hardwareMap.ultrasonicSensor.get("ultra_back");
-        ultra_front = hardwareMap.ultrasonicSensor.get("ultra_front");
+        motor = hardwareMap.dcMotor.get("motor_2");
 
         // wait for the start button to be pressed.
         waitForStart();
 
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setTargetPosition(1310);  // one whole turn
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setPower(0.05);
+
+        // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
         while (opModeIsActive()) {
 
-            telemetry.addData("Beacon: R:G:B ", "%d:%d:%d", beacon_color.red(), beacon_color.green(), beacon_color.blue());
-            telemetry.addData("front: ", "%d", front_light.red() + front_light.green() + front_light.blue());
-            telemetry.addData("back: ", "%d", back_light.red() + back_light.green() + back_light.blue());
-            telemetry.addData("middle: ", "%d", lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue());
-            telemetry.addData("u_front: ", "%f", ultra_front.getUltrasonicLevel());
-            telemetry.addData("u_back: ", "%f", ultra_back.getUltrasonicLevel());
+            telemetry.addData("Motor Pos: ", "%d", motor.getCurrentPosition());
 
             telemetry.update();
+
+            if(Math.abs(motor.getCurrentPosition() - motor.getTargetPosition()) <= 10)
+            {
+                motor.setPower(0.0);
+            }
         }
     }
 }
