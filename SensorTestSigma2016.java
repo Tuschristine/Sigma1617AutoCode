@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -60,6 +61,8 @@ public class SensorTestSigma2016 extends LinearOpMode {
     UltrasonicSensor ultra_front = null;
     UltrasonicSensor ultra_back = null;
 
+    ModernRoboticsI2cGyro gyro = null;
+
     @Override
     public void runOpMode() {
 
@@ -82,6 +85,21 @@ public class SensorTestSigma2016 extends LinearOpMode {
         ultra_back = hardwareMap.ultrasonicSensor.get("ultra_back");
         ultra_front = hardwareMap.ultrasonicSensor.get("ultra_front");
 
+        gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
+
+        gyro.calibrate();
+
+        // make sure the gyro is calibrated before continuing
+        while (!isStopRequested() && gyro.isCalibrating()) {
+            sleep(50);
+            idle();
+        }
+
+        gyro.resetZAxisIntegrator();
+
+        telemetry.addData(">", "Robot Ready.");    //
+        telemetry.update();
+
         // wait for the start button to be pressed.
         waitForStart();
 
@@ -93,6 +111,7 @@ public class SensorTestSigma2016 extends LinearOpMode {
             telemetry.addData("middle: ", "%d", lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue());
             telemetry.addData("u_front: ", "%f", ultra_front.getUltrasonicLevel());
             telemetry.addData("u_back: ", "%f", ultra_back.getUltrasonicLevel());
+            telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
 
             telemetry.update();
         }

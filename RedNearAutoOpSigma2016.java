@@ -85,29 +85,43 @@ import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_STOP;
 //@Disabled
 public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
-    static final double COUNTS_PER_MOTOR_REV = 1125;    // eg: TETRIX Motor Encoder
-    static final double DRIVE_GEAR_REDUCTION = 1.0;     // This is < 1.0 if geared UP
-    static final double WHEEL_DIAMETER_INCHES = 3.75;     // For figuring circumference
+    static final double COUNTS_PER_MOTOR_REV = 1310 * 1.6;    // eg: TETRIX Motor Encoder
+    static final double DRIVE_GEAR_REDUCTION = 1 / 1.6;     // This is < 1.0 if geared UP
+    static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
-    static final double DRIVE_SPEED = 1.0;     // Nominal speed for better accuracy.
-    static final double TURN_SPEED = 0.3;     // Nominal half speed for better accuracy.
-    static final double WALL_APPROACHING_SPEED = 0.4;
-    static final double LINE_DETECTION_SPEED = 0.12;
-    static final double WALL_TRAVELING_SPEED = 0.35;
-    static final double HEADING_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
-    static final double P_TURN_COEFF = 0.5;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
-    static final double P_WALL_TRACKING_COEFF = 0.1;     // Larger is more responsive, but also less stable
-    static final double TARGET_WALL_DISTANCE = 14.0;  // ultrasound sensor reading for x inch away from wall
-    static final double WALL_DISTANCE_THRESHOLD = 1.0; // no need to adjust if wall distance is within range
-    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 3.0;
+    static final double DRIVE_SPEED = 0.9;     // Nominal speed for better accuracy.
+    static final double P_DRIVE_COEFF = 0.05;     // Larger is more responsive, but also less stable
+
+    static final double TURN_SPEED = 0.25;     // Nominal half speed for better accuracy.
+    static final double TURN_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
+    static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
+    static final double MIN_TURN_SPEED = 0.18;     // Larger is more responsive, but also less stable
+
+    static final double maxLeftRightSpeedDifferentialAtDrive = 0.5;
+    static final double maxLeftRightSpeedDifferentialAtUS_Tracking = 0.5;
+
+    static final double WALL_APPROACHING_SPEED = 0.6;
+    static final double P_WALL_APPROACHING_COEFF = 0.1;
+
+    static final double LINE_DETECTION_SPEED = 0.05;
+    static final double WALL_TRAVELING_SPEED = 0.2;
+    static final double P_WALL_TRACKING_COEFF_FINE = 0.025;// Larger is more responsive, but also less stable
+    static final double P_WALL_TRACKING_COEFF_COARSE = 0.05;// Larger is more responsive, but also less stable
+
+    static final double TARGET_WALL_DISTANCE_FORWARD = 7;  // ultrasound sensor reading for x inch away from wall
+    static final double TARGET_WALL_DISTANCE_BACKWARD = 7;
+    static final double WALL_DISTANCE_THRESHOLD = 0.5; // no need to adjust if wall distance is within range
+    static final double WALL_TRACKING_MAX_HEADING_OFFSET = 2.0;
+
+    static final int ENCODER_TARGET_THRESHOLD = 10;
 
     static final int RED_TRESHOLD = 5;
     static final int BLUE_TRESHOLD = 5;
+
     static final int CENTER_LIGHT_SENSOR = 0;
     static final int FRONT_LIGHT_SENSOR = 1;
     static final int BACK_LIGHT_SENSOR = 2;
@@ -123,7 +137,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
-        System.out.println("--RedNear log@" + currentDateTimeString + "--");
+//        System.out.println("--RedNear log@" + currentDateTimeString + "--");
 
         /* -------- initializations ---------- */
         /*
@@ -153,6 +167,8 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             idle();
         }
 
+        gyro.resetZAxisIntegrator();
+
         telemetry.addData(">", "Robot Ready.");    //
         telemetry.update();
 
@@ -163,97 +179,100 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             idle();
         }
 
-        gyro.resetZAxisIntegrator();
-
         /* -------- driving to the predefined position ------- */
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Put a hold after each turn
-        gyroDrive(DRIVE_SPEED, -51, 50.0); // Drive BWD 63 inches
-        if (!opModeIsActive())
-        {
-            StopAllMotion();
+        gyroDrive(DRIVE_SPEED, -80, 42.0); // Drive BWD 63 inches
+        StopAllMotion();
+        if (!opModeIsActive()) {
             return;
         }
 
-        gyroTurn(TURN_SPEED, 20.0);               // Turn to -10 degree
+        // Turn to -20 degree. Make the turn coeff huge so full TURN_SPEED power will be used.
+        gyroTurn(TURN_SPEED, 20.0, P_TURN_COEFF);
+        StopAllMotion();
+        if (!opModeIsActive()) {
+            return;
+        }
 
         UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -60, 15.0);
-        if (!opModeIsActive())
-        {
             StopAllMotion();
+        if (!opModeIsActive()) {
             return;
         }
 
-        gyroTurn(TURN_SPEED, 5.0);               // Turn to 0 degree
-        if (!opModeIsActive())
-        {
+        // Turn to 0.0 degree with speed TURN_SPEED. Make the turn coeff huge so full TURN_SPEED power will be used.
+        // Otherwise the robot could stuck because only a portion of TURN_SPEED power is applied.
+        gyroTurn(TURN_SPEED, 5.0, P_TURN_COEFF);
             StopAllMotion();
+        if (!opModeIsActive()) {
             return;
         }
 
         /* ------ ultrasonic wall tracker + white line detection ------- */
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, 0, true, BACK_LIGHT_SENSOR);
-        if (!opModeIsActive())
-        {
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, true, CENTER_LIGHT_SENSOR);
             StopAllMotion();
+        if (!opModeIsActive()) {
             return;
         }
 
-        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18, 0, true, CENTER_LIGHT_SENSOR);
-        if (!opModeIsActive())
-        {
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, 18, true, CENTER_LIGHT_SENSOR);
             StopAllMotion();
-            return;
-        }
-
-        // make ultrasonic sensor ready and give stable output when needed.
-        robot.ultra_back.getUltrasonicLevel();
-        robot.ultra_front.getUltrasonicLevel();
-
-        // run the beacon light color detection and button pushing procedure
-        StopAllMotion();
-        ColorDetectionAndButtonPushing();
-        if (!opModeIsActive())
-        {
-            StopAllMotion();
-            return;
-        }
-
-        // Drive forward to detect the near line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 80.0, 0, true, FRONT_LIGHT_SENSOR);
-        if (!opModeIsActive())
-        {
-            StopAllMotion();
-            return;
-        }
-
-        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, 18.0, 0.0, true, CENTER_LIGHT_SENSOR);
-        if (!opModeIsActive())
-        {
-            StopAllMotion();
+        if (!opModeIsActive()) {
             return;
         }
 
         // run the beacon light color detection and button pushing procedure
-        StopAllMotion();
         ColorDetectionAndButtonPushing();
-        if (!opModeIsActive())
-        {
+        if (!opModeIsActive()) {
+            StopAllMotion();
+            return;
+        }
+
+        // Drive backward to detect the near line
+        // pass the current white line without line detection
+        WallTrackingToWhiteLine(0.5, 35.0, false, CENTER_LIGHT_SENSOR);
+        if (!opModeIsActive()) {
+            StopAllMotion();
+            return;
+        }
+
+        // detect the near white line
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 30.0, true, CENTER_LIGHT_SENSOR);
+            StopAllMotion();
+        if (!opModeIsActive()) {
+            return;
+        }
+
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18.0, true, CENTER_LIGHT_SENSOR);
+        StopAllMotion();
+        if (!opModeIsActive()) {
+            return;
+        }
+
+        // run the beacon light color detection and button pushing procedure
+        ColorDetectionAndButtonPushing();
+        if (!opModeIsActive()) {
             StopAllMotion();
             return;
         }
 
         /*------ drive to the center vortex ------*/
-        gyroDrive(DRIVE_SPEED, -30.00, -90.0); // -90 degree
-        if (!opModeIsActive())
-        {
+        gyroDrive(DRIVE_SPEED, -30.00, -30.0); // 30 degree
+        if (!opModeIsActive()) {
             StopAllMotion();
             return;
         }
 
-        gyroDrive(DRIVE_SPEED, -33.00, -103.0); // -115 degree
+        gyroTurn(TURN_SPEED, -125.0, P_TURN_COEFF); // turn to 90 degree
+            StopAllMotion();
+        if (!opModeIsActive()) {
+            return;
+        }
+
+        gyroDrive(DRIVE_SPEED, -50.00, -125.0); // -115 degree
 
         // Finally, stop
         StopAllMotion();
@@ -297,7 +316,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             robot.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.backLeftMotor.setMode(RUN_WITHOUT_ENCODER);
-            robot.backRightMotor.setMode((RUN_WITHOUT_ENCODER));
+            robot.backRightMotor.setMode(RUN_WITHOUT_ENCODER);
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int) (distance * COUNTS_PER_INCH);
@@ -337,6 +356,14 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             while (opModeIsActive() &&
                     (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
 
+                if (Math.abs(robot.frontLeftMotor.getCurrentPosition()
+                        - robot.frontLeftMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
+                } else if (Math.abs(robot.frontRightMotor.getCurrentPosition()
+                        - robot.frontRightMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
+                }
+
                 // adjust relative speed based on heading error.
                 error = getError(angle);
                 steer = getSteer(error, P_DRIVE_COEFF);
@@ -348,8 +375,12 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 leftSpeed = speed - steer;
                 rightSpeed = speed + steer;
 
-                leftSpeed = Range.clip(leftSpeed, -Math.abs(speed), Math.abs(speed));
-                rightSpeed = Range.clip(rightSpeed, -Math.abs(speed), Math.abs(speed));
+                leftSpeed = Range.clip(leftSpeed,
+                        speed - Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed),
+                        speed + Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed));
+                rightSpeed = Range.clip(rightSpeed,
+                        speed - Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed),
+                        speed + Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed));
 
                 robot.frontLeftMotor.setPower(leftSpeed);
                 robot.frontRightMotor.setPower(rightSpeed);
@@ -358,7 +389,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
                 // Display drive status for the driver.
                 telemetry.addData("Err/St", "%5.1f/%5.1f", error, steer);
-                telemetry.addData("Target", "%7d:%7d", newLeftTarget, newRightTarget);
+                telemetry.addData("Targets L:R", "%7d:%7d", newLeftTarget, newRightTarget);
                 telemetry.addData("Actual", "%7d:%7d", robot.frontLeftMotor.getCurrentPosition(),
                         robot.frontRightMotor.getCurrentPosition());
 
@@ -405,10 +436,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
      *              0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *              If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroTurn(double speed, double angle) {
+    public void gyroTurn(double speed, double angle, double turnCoeff) {
 
         // keep looping while we are still active, and not on heading.
-        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
+        while (opModeIsActive() && !onHeading(speed, angle, turnCoeff)) {
             // Update telemetry & Allow time for other processes to run.
             telemetry.update();
         }
@@ -468,7 +499,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         // determine turn power based on +/- error
         error = getError(angle);
 
-        if (Math.abs(error) <= HEADING_THRESHOLD) {
+        if (Math.abs(error) <= TURN_THRESHOLD) {
             steer = 0.0;
             leftSpeed = 0.0;
             rightSpeed = 0.0;
@@ -476,6 +507,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         } else {
             steer = getSteer(error, PCoeff);
             rightSpeed = speed * steer;
+            if (Math.abs(rightSpeed) < MIN_TURN_SPEED) {
+                rightSpeed = Math.abs(rightSpeed) * MIN_TURN_SPEED / rightSpeed;
+            }
+
             leftSpeed = -rightSpeed;
         }
 
@@ -486,7 +521,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         robot.backRightMotor.setPower(rightSpeed);
 
         // Display it for the driver.
-        telemetry.addData("Target", "%5.2f", angle);
+        telemetry.addData("Target:current", "%5.2f:5.2f", angle, gyro.getIntegratedZValue());
         telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
         telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
 
@@ -534,7 +569,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         double steer;
         double leftSpeed;
         double rightSpeed;
-        double ultraSoundLevel;
+        double ultraSoundLevel, targetUS_Level;
         double blackLightLevel, lightLevel;
 
         // Ensure that the opmode is still active
@@ -575,6 +610,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 } else {
                     robot.backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
                 }
+
+                targetUS_Level = TARGET_WALL_DISTANCE_BACKWARD + 2;
+            } else {
+                targetUS_Level = TARGET_WALL_DISTANCE_FORWARD + 2;
             }
 
             // start motion.
@@ -588,9 +627,15 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             while (opModeIsActive() &&
                     (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
 
+                if (Math.abs(robot.frontLeftMotor.getCurrentPosition() - robot.frontLeftMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
+                } else if (Math.abs(robot.frontRightMotor.getCurrentPosition() - robot.frontRightMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
+                }
+
                 // adjust relative speed based on heading error.
                 error = getError(angle);
-                steer = getSteer(error, P_DRIVE_COEFF);
+                steer = getSteer(error, P_WALL_APPROACHING_COEFF);
 
                 // if driving in reverse, the motor correction also needs to be reversed
                 if (distance < 0)
@@ -599,8 +644,12 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 leftSpeed = speed - steer;
                 rightSpeed = speed + steer;
 
-                leftSpeed = Range.clip(leftSpeed, -Math.abs(speed), Math.abs(speed));
-                rightSpeed = Range.clip(rightSpeed, -Math.abs(speed), Math.abs(speed));
+                leftSpeed = Range.clip(leftSpeed,
+                        speed - Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed),
+                        speed + Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed));
+                rightSpeed = Range.clip(rightSpeed,
+                        speed - Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed),
+                        speed + Math.abs(maxLeftRightSpeedDifferentialAtDrive * speed));
 
                 robot.frontLeftMotor.setPower(leftSpeed);
                 robot.frontRightMotor.setPower(rightSpeed);
@@ -617,6 +666,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 if (ct2 > 1000) {
                     ct2 = 0;
                     System.out.println("--RedNear log-- ultrasound level = " + ultraSoundLevel);
+                    System.out.println("--RedNear log-- left:right speed = " + leftSpeed + ":" + rightSpeed);
                 }
 
                 // handles abnormal ultrasonic reading
@@ -634,7 +684,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 } else if (ultraSoundLevel == 255) {
                     // error reading. Ignore.
                     continue;
-                } else if (ultraSoundLevel <= TARGET_WALL_DISTANCE+2) {
+                } else if (ultraSoundLevel <= targetUS_Level) {
 
                     System.out.println("--RedNear log-- wall reached -- ultrasound level=" + ultraSoundLevel);
 
@@ -665,7 +715,6 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         return (true);
     }
 
-
     /**
      * Method to track along a wall using an ultrasonic sensor
      * Move will stop if either of these conditions occur:
@@ -678,10 +727,8 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
      */
     public void WallTrackingToWhiteLine(double speed,
                                         double distance,
-                                        double headingAngle,
                                         boolean bLineDetection,
                                         int whichLightSensor) {
-
         int newLeftTarget;
         int newRightTarget;
         int moveCounts;
@@ -695,6 +742,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
         int lightlevel = 0;
         int groundbrightness = 0;
         double lineLightThresh = 100;
+        double targetWallDistance, targetAngleOffset, angleSteer;
 
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
@@ -735,6 +783,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 } else {
                     robot.backRightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
                 }
+
+                targetWallDistance = TARGET_WALL_DISTANCE_BACKWARD;
+            } else {
+                targetWallDistance = TARGET_WALL_DISTANCE_FORWARD;
             }
 
             // start motion.
@@ -748,80 +800,10 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             while (opModeIsActive() &&
                     (robot.frontLeftMotor.isBusy() && robot.frontRightMotor.isBusy())) {
 
-                angleOffset = gyro.getIntegratedZValue() - headingAngle;
-
-                if (distance < 0) {
-                    ultraSoundLevel = robot.ultra_back.getUltrasonicLevel();
-                } else {
-                    ultraSoundLevel = robot.ultra_front.getUltrasonicLevel();
-                }
-
-                error = ultraSoundLevel - TARGET_WALL_DISTANCE;
-
-                ct3++;
-                if (ct3 > 1000) {
-                    ct3 = 0;
-
-                    System.out.println("--RedNear log-- ultrasoniclevel=" + ultraSoundLevel + " error=" + error + " angleOffset=" + angleOffset);
-                }
-
-                if (ultraSoundLevel == 255) {
-                    // error reading. Ignore.
-                    continue;
-                }
-
-                // adjust relative speed based on ultrasound reading.
-                if ((Math.abs(error) >= WALL_DISTANCE_THRESHOLD) &&
-                        ((Math.abs(angleOffset) < WALL_TRACKING_MAX_HEADING_OFFSET) || (error * angleOffset * distance > 0))) {
-
-                    steer = getSteer(error, P_WALL_TRACKING_COEFF);
-
-                    // higher speed needs smaller steering and vice versa
-                    steer = steer / speed;
-
-                    leftSpeed = speed + steer;
-                    rightSpeed = speed - steer;
-
-                    leftSpeed = Range.clip(leftSpeed, -Math.abs(speed), Math.abs(speed));
-                    rightSpeed = Range.clip(rightSpeed, -Math.abs(speed), Math.abs(speed));
-
-                    robot.frontLeftMotor.setPower(leftSpeed);
-                    robot.frontRightMotor.setPower(rightSpeed);
-                    robot.backLeftMotor.setPower(leftSpeed);
-                    robot.backRightMotor.setPower(rightSpeed);
-
-                    if (ct3 == 0) {
-                        System.out.println("--RedNear log-- error=" + error
-                                + " leftspeed=" + String.format(Double.toString(leftSpeed), "%5.2f")
-                                + " rightSpeed=" + String.format(Double.toString(rightSpeed), "%5.2f"));
-                    }
-                } else {
-                    if (angleOffset != 0) {
-                        steer = getSteer(angleOffset, P_WALL_TRACKING_COEFF);
-
-                        // higher speed needs smaller steering and vice versa
-                        steer = steer / speed;
-
-                        // if driving in forward, the motor correction also needs to be reversed
-                        if (distance > 0)
-                            steer *= -1.0;
-
-                        leftSpeed = speed - steer;
-                        rightSpeed = speed + steer;
-
-                        leftSpeed = Range.clip(leftSpeed, -Math.abs(speed), Math.abs(speed));
-                        rightSpeed = Range.clip(rightSpeed, -Math.abs(speed), Math.abs(speed));
-
-                        robot.frontLeftMotor.setPower(leftSpeed);
-                        robot.frontRightMotor.setPower(rightSpeed);
-                        robot.backLeftMotor.setPower(leftSpeed);
-                        robot.backRightMotor.setPower(rightSpeed);
-                    } else {
-                        robot.frontLeftMotor.setPower(speed);
-                        robot.frontRightMotor.setPower(speed);
-                        robot.backRightMotor.setPower(speed);
-                        robot.backLeftMotor.setPower(speed);
-                    }
+                if (Math.abs(robot.frontLeftMotor.getCurrentPosition() - robot.frontLeftMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
+                } else if (Math.abs(robot.frontRightMotor.getCurrentPosition() - robot.frontRightMotor.getTargetPosition()) <= ENCODER_TARGET_THRESHOLD) {
+                    break;
                 }
 
                 if (bLineDetection) {
@@ -860,10 +842,175 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
 
-                    telemetry.addData("Light Level :: ", "%d,%d", groundbrightness, lightlevel);
-                    telemetry.update();
+//                    System.out.println("Ground Brightness:: " + groundbrightness
+//                            + " Light Level:: " + lightlevel);
 
                     if (lightlevel > lineLightThresh * groundbrightness) {
+                        System.out.println("Ground Brightness:: " + groundbrightness
+                                + " DETECTED Light Level:: " + lightlevel);
+                        break;
+                    }
+                }
+
+                if (distance < 0) {
+                    ultraSoundLevel = robot.ultra_back.getUltrasonicLevel();
+                } else {
+                    ultraSoundLevel = robot.ultra_front.getUltrasonicLevel();
+                }
+
+                error = ultraSoundLevel - targetWallDistance;
+
+                // get angle offset of the wall
+                angleOffset = gyro.getIntegratedZValue();
+
+                ct3++;
+                if (ct3 > 500) {
+                    ct3 = 0;
+
+                    System.out.println("--RedNear log-- ultrasoniclevel=" + ultraSoundLevel + " error=" + error + " angleOffset=" + angleOffset);
+                }
+
+                if (ultraSoundLevel == 255) {
+                    // error reading. Ignore.
+                    continue;
+                }
+
+                // adjust angle pointing based on ultrasound reading.
+                if (Math.abs(error) >= WALL_DISTANCE_THRESHOLD + 2) {
+                    // distance off by more than 2. Need steep 10 degree angle driving back to expected distance
+                    targetAngleOffset = 0.0 - Math.signum(distance) * Math.signum(error) * 5.0;
+
+                    angleSteer = targetAngleOffset - angleOffset;
+
+                    steer = Math.signum(distance) * angleSteer * 0.01;
+
+                    // higher speed needs smaller steering and vice versa
+//                    steer = steer / (speed / WALL_TRAVELING_SPEED);
+
+                    leftSpeed = speed - steer;
+                    rightSpeed = speed + steer;
+
+                    leftSpeed = Range.clip(leftSpeed, 0, Math.abs(speed));
+                    rightSpeed = Range.clip(rightSpeed, 0, Math.abs(speed));
+
+                    robot.frontLeftMotor.setPower(leftSpeed);
+                    robot.frontRightMotor.setPower(rightSpeed);
+                    robot.backLeftMotor.setPower(leftSpeed);
+                    robot.backRightMotor.setPower(rightSpeed);
+
+                    if (ct3 == 0) {
+                        System.out.println("--RedNear log-- error=" + error
+                                + " leftspeed=" + String.format(Double.toString(leftSpeed), "%5.2f")
+                                + " rightSpeed=" + String.format(Double.toString(rightSpeed), "%5.2f")
+                                + " curAngle=" + angleOffset
+                                + " targetAngle=" + targetAngleOffset);
+                    }
+                } else if (Math.abs(error) >= WALL_DISTANCE_THRESHOLD + 1) {
+
+                    // distance off by 1. Need mild angle driving back to expected distance
+                    // 3.0 is the expected front/back ultrasound sensor difference
+                    targetAngleOffset = 0.0 - Math.signum(distance) * Math.signum(error) * 2.0;
+
+                    angleSteer = targetAngleOffset - angleOffset;
+
+                    steer = Math.signum(distance) * angleSteer * 0.02;
+
+                    // higher speed needs smaller steering and vice versa
+//                    steer = steer / (speed / WALL_TRAVELING_SPEED);
+
+                        leftSpeed = speed - steer;
+                        rightSpeed = speed + steer;
+
+                    leftSpeed = Range.clip(leftSpeed, 0, Math.abs(speed));
+                    rightSpeed = Range.clip(rightSpeed, 0, Math.abs(speed));
+
+                        robot.frontLeftMotor.setPower(leftSpeed);
+                        robot.frontRightMotor.setPower(rightSpeed);
+                        robot.backLeftMotor.setPower(leftSpeed);
+                        robot.backRightMotor.setPower(rightSpeed);
+
+                    if (ct3 == 0) {
+                        System.out.println("--BlueNear log-- error=" + error
+                                        + " leftspeed=" + String.format(Double.toString(leftSpeed), "%5.2f")
+                                        + " rightSpeed=" + String.format(Double.toString(rightSpeed), "%5.2f")
+                                + " curAngle=" + angleOffset
+                                + " targetAngle=" + targetAngleOffset);
+                    }
+                    } else {
+
+                    // distance on target. Need to keep 0 angle offset
+                    // 3.0 is the expected front/back ultrasound sensor difference
+                    targetAngleOffset = 0.0;
+
+                    angleSteer = targetAngleOffset - angleOffset;
+
+                    steer = Math.signum(distance) * angleSteer * 0.03;
+
+                    // higher speed needs smaller steering and vice versa
+//                    steer = steer / (speed / WALL_TRAVELING_SPEED);
+
+                    leftSpeed = speed - steer;
+                    rightSpeed = speed + steer;
+
+                    leftSpeed = Range.clip(leftSpeed, 0, Math.abs(speed));
+                    rightSpeed = Range.clip(rightSpeed, 0, Math.abs(speed));
+
+                    robot.frontLeftMotor.setPower(leftSpeed);
+                    robot.frontRightMotor.setPower(rightSpeed);
+                    robot.backLeftMotor.setPower(leftSpeed);
+                    robot.backRightMotor.setPower(rightSpeed);
+
+                    if (ct3 == 0) {
+                        System.out.println("--BlueNear log-- error=" + error
+                                        + " leftspeed=" + String.format(Double.toString(leftSpeed), "%5.2f")
+                                        + " rightSpeed=" + String.format(Double.toString(rightSpeed), "%5.2f")
+                                + " curAngle=" + angleOffset
+                                + " targetAngle=" + targetAngleOffset);
+                    }
+                }
+
+                if (bLineDetection) {
+                            switch (whichLightSensor) {
+                                case CENTER_LIGHT_SENSOR:
+                                    lightlevelR = robot.lineLightSensor.blue();
+                                    lightlevelB = robot.lineLightSensor.red();
+                                    lightlevelG = robot.lineLightSensor.green();
+
+                                    groundbrightness = robot.groundbrightness_center;
+                                    lineLightThresh = robot.CENTER_LIGHT_THRESH;
+                                    break;
+
+                                case FRONT_LIGHT_SENSOR:
+                                    lightlevelR = robot.front_light.blue();
+                                    lightlevelB = robot.front_light.red();
+                                    lightlevelG = robot.front_light.green();
+
+                                    groundbrightness = robot.groundbrightness_front;
+                                    lineLightThresh = robot.FRONT_LIGHT_THRESH;
+                                    break;
+
+                                case BACK_LIGHT_SENSOR:
+                                    lightlevelR = robot.back_light.blue();
+                                    lightlevelB = robot.back_light.red();
+                                    lightlevelG = robot.back_light.green();
+
+                                    groundbrightness = robot.groundbrightness_back;
+                                    lineLightThresh = robot.BACK_LIGHT_THRESH;
+                                    break;
+
+                        default:
+                            System.out.println("--RedNear log-- invalid whichLightSensor=" + whichLightSensor);
+                            break;
+                    }
+
+                    lightlevel = lightlevelB + lightlevelR + lightlevelG;
+
+//                    System.out.println("Ground Brightness:: " + groundbrightness
+//                            + " Light Level:: " + lightlevel);
+
+                    if (lightlevel > lineLightThresh * groundbrightness) {
+                        System.out.println("Ground Brightness:: " + groundbrightness
+                                + " DETECTED Light Level:: " + lightlevel);
                         break;
                     }
                 }

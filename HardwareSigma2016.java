@@ -27,7 +27,7 @@ public class HardwareSigma2016
     public int groundbrightness_back=0;
     public final double FRONT_LIGHT_THRESH = 2.5;
     public final double BACK_LIGHT_THRESH = 2.5;
-    public final double CENTER_LIGHT_THRESH = 2.5;
+    public final double CENTER_LIGHT_THRESH = 2.75;
 
     /* Public OpMode members. */
     public DcMotor  backLeftMotor = null;
@@ -96,19 +96,19 @@ public class HardwareSigma2016
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        groundbrightness_center = lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue();
+//        groundbrightness_center = lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue();
 
         // color sensor on beacon pusher
         beaconColorSensor = hwMap.colorSensor.get("beacon_color");
         beaconColorSensor.enableLed(false);
 
         front_light = hwMap.colorSensor.get("front_light");
-        front_light.enableLed(true);
-        groundbrightness_front = front_light.red() + front_light.green() + front_light.blue();
+        front_light.enableLed(false);
+//        groundbrightness_front = front_light.red() + front_light.green() + front_light.blue();
 
         back_light = hwMap.colorSensor.get("back_light");
-        back_light.enableLed(true);
-        groundbrightness_back = back_light.red() + back_light.green() + back_light.blue();
+        back_light.enableLed(false);
+//        groundbrightness_back = back_light.red() + back_light.green() + back_light.blue();
 
         // ultrasonic sensor
         ultra_back = hwMap.ultrasonicSensor.get("ultra_back");

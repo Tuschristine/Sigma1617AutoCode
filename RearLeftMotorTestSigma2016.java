@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -49,7 +50,7 @@ import com.qualcomm.robotcore.hardware.UltrasonicSensor;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @Autonomous(name = "RearLeftMotor", group = "Sigma6710")
-//@Disabled
+@Disabled
 public class RearLeftMotorTestSigma2016 extends LinearOpMode {
 
     DcMotor motor = null;
@@ -63,22 +64,16 @@ public class RearLeftMotorTestSigma2016 extends LinearOpMode {
         waitForStart();
 
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motor.setTargetPosition(1310);  // one whole turn
-        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motor.setPower(0.05);
 
-        // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
+        // Note we use opModeIsActive() as our loop condition because it is an interrupting method.
         while (opModeIsActive()) {
 
             telemetry.addData("Motor Pos: ", "%d", motor.getCurrentPosition());
-
             telemetry.update();
-
-            if(Math.abs(motor.getCurrentPosition() - motor.getTargetPosition()) <= 10)
-            {
-                motor.setPower(0.0);
-            }
         }
+
+        motor.setPower(0.0);
     }
 }
