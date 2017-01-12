@@ -123,8 +123,9 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
     static final int BLUE_TRESHOLD = 5;
 
     static final int CENTER_LIGHT_SENSOR = 0;
-    static final int FRONT_LIGHT_SENSOR = 1;
-    static final int BACK_LIGHT_SENSOR = 2;
+    static int GROUND_BRIGHTNESS_AVERAGE = 0;
+    public int groundbrightness_test3=0;
+    public int groundbrightness_test2=0;
 
     /* Declare OpMode members. */
     HardwareSigma2016 robot = null;
@@ -189,12 +190,17 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
             return;
         }
 
+        groundbrightness_test2 = robot.lineLightSensor.red() + robot.lineLightSensor.green() + robot.lineLightSensor.blue();
+
         // Turn to -20 degree. Make the turn coeff huge so full TURN_SPEED power will be used.
         gyroTurn(TURN_SPEED, 20.0, P_TURN_COEFF);
         StopAllMotion();
         if (!opModeIsActive()) {
             return;
         }
+
+        groundbrightness_test3 = robot.lineLightSensor.red() + robot.lineLightSensor.green() + robot.lineLightSensor.blue();
+        GROUND_BRIGHTNESS_AVERAGE = (groundbrightness_test2 + groundbrightness_test3 + robot.groundbrightness_test1)/3;
 
         UltraSonicReachTheWall(WALL_APPROACHING_SPEED, -60, 15.0);
             StopAllMotion();
@@ -212,13 +218,13 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
         /* ------ ultrasonic wall tracker + white line detection ------- */
         // Drive forward to align with the wall and park at far line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, true, CENTER_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, -80, true);
             StopAllMotion();
         if (!opModeIsActive()) {
             return;
         }
 
-        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, 18, true, CENTER_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, 18, true);
             StopAllMotion();
         if (!opModeIsActive()) {
             return;
@@ -233,20 +239,20 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
 
         // Drive backward to detect the near line
         // pass the current white line without line detection
-        WallTrackingToWhiteLine(0.5, 35.0, false, CENTER_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(0.5, 35.0, false);
         if (!opModeIsActive()) {
             StopAllMotion();
             return;
         }
 
         // detect the near white line
-        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 30.0, true, CENTER_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(WALL_TRAVELING_SPEED, 30.0, true);
             StopAllMotion();
         if (!opModeIsActive()) {
             return;
         }
 
-        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18.0, true, CENTER_LIGHT_SENSOR);
+        WallTrackingToWhiteLine(LINE_DETECTION_SPEED, -18.0, true);
         StopAllMotion();
         if (!opModeIsActive()) {
             return;
@@ -727,8 +733,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
      */
     public void WallTrackingToWhiteLine(double speed,
                                         double distance,
-                                        boolean bLineDetection,
-                                        int whichLightSensor) {
+                                        boolean bLineDetection) {
         int newLeftTarget;
         int newRightTarget;
         int moveCounts;
@@ -807,39 +812,15 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 }
 
                 if (bLineDetection) {
-                    switch (whichLightSensor) {
-                        case CENTER_LIGHT_SENSOR:
                             lightlevelR = robot.lineLightSensor.blue();
                             lightlevelB = robot.lineLightSensor.red();
                             lightlevelG = robot.lineLightSensor.green();
 
-                            groundbrightness = robot.groundbrightness_center;
+                            groundbrightness = GROUND_BRIGHTNESS_AVERAGE;
                             lineLightThresh = robot.CENTER_LIGHT_THRESH;
-                            break;
-
-                        case FRONT_LIGHT_SENSOR:
-                            lightlevelR = robot.front_light.blue();
-                            lightlevelB = robot.front_light.red();
-                            lightlevelG = robot.front_light.green();
-
-                            groundbrightness = robot.groundbrightness_front;
-                            lineLightThresh = robot.FRONT_LIGHT_THRESH;
-                            break;
-
-                        case BACK_LIGHT_SENSOR:
-                            lightlevelR = robot.back_light.blue();
-                            lightlevelB = robot.back_light.red();
-                            lightlevelG = robot.back_light.green();
-
-                            groundbrightness = robot.groundbrightness_back;
-                            lineLightThresh = robot.BACK_LIGHT_THRESH;
-                            break;
-
-                        default:
-                            System.out.println("--RedNear log-- invalid whichLightSensor=" + whichLightSensor);
-                            break;
+                            System.out.println("--RedNear log-- invalid whichLightSensor=" + CENTER_LIGHT_SENSOR);
                     }
-
+                    System.out.println("TIME:: " + java.lang.System.currentTimeMillis() );
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
 
 //                    System.out.println("Ground Brightness:: " + groundbrightness
@@ -850,7 +831,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                                 + " DETECTED Light Level:: " + lightlevel);
                         break;
                     }
-                }
+
 
                 if (distance < 0) {
                     ultraSoundLevel = robot.ultra_back.getUltrasonicLevel();
@@ -970,37 +951,14 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 }
 
                 if (bLineDetection) {
-                            switch (whichLightSensor) {
-                                case CENTER_LIGHT_SENSOR:
                                     lightlevelR = robot.lineLightSensor.blue();
                                     lightlevelB = robot.lineLightSensor.red();
                                     lightlevelG = robot.lineLightSensor.green();
 
-                                    groundbrightness = robot.groundbrightness_center;
+                                    groundbrightness = GROUND_BRIGHTNESS_AVERAGE;
                                     lineLightThresh = robot.CENTER_LIGHT_THRESH;
-                                    break;
 
-                                case FRONT_LIGHT_SENSOR:
-                                    lightlevelR = robot.front_light.blue();
-                                    lightlevelB = robot.front_light.red();
-                                    lightlevelG = robot.front_light.green();
-
-                                    groundbrightness = robot.groundbrightness_front;
-                                    lineLightThresh = robot.FRONT_LIGHT_THRESH;
-                                    break;
-
-                                case BACK_LIGHT_SENSOR:
-                                    lightlevelR = robot.back_light.blue();
-                                    lightlevelB = robot.back_light.red();
-                                    lightlevelG = robot.back_light.green();
-
-                                    groundbrightness = robot.groundbrightness_back;
-                                    lineLightThresh = robot.BACK_LIGHT_THRESH;
-                                    break;
-
-                        default:
-                            System.out.println("--RedNear log-- invalid whichLightSensor=" + whichLightSensor);
-                            break;
+                            System.out.println("--RedNear log-- invalid whichLightSensor=" + CENTER_LIGHT_SENSOR);
                     }
 
                     lightlevel = lightlevelB + lightlevelR + lightlevelG;
@@ -1034,7 +992,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                 }
             }
         }
-    }
+
 
     // detect the color and push the red button.
     public void ColorDetectionAndButtonPushing() {

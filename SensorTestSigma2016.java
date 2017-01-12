@@ -55,8 +55,6 @@ public class SensorTestSigma2016 extends LinearOpMode {
 
     ColorSensor beacon_color = null;  // Hardware Device Object
     ColorSensor lineLightSensor = null;
-    ColorSensor front_light = null;
-    ColorSensor back_light = null;
 
     UltrasonicSensor ultra_front = null;
     UltrasonicSensor ultra_back = null;
@@ -71,12 +69,6 @@ public class SensorTestSigma2016 extends LinearOpMode {
         beacon_color = hardwareMap.colorSensor.get("beacon_color");
         // turn the LED on in the beginning, just so user will know that the sensor is active.
         beacon_color.enableLed(false);
-
-        front_light = hardwareMap.colorSensor.get("front_light");
-        front_light.enableLed(true);
-
-        back_light = hardwareMap.colorSensor.get("back_light");
-        back_light.enableLed(true);
 
         lineLightSensor = hardwareMap.colorSensor.get("line_light");
         lineLightSensor.enableLed(true);
@@ -106,8 +98,6 @@ public class SensorTestSigma2016 extends LinearOpMode {
         while (opModeIsActive()) {
 
             telemetry.addData("Beacon: R:G:B ", "%d:%d:%d", beacon_color.red(), beacon_color.green(), beacon_color.blue());
-            telemetry.addData("front: ", "%d", front_light.red() + front_light.green() + front_light.blue());
-            telemetry.addData("back: ", "%d", back_light.red() + back_light.green() + back_light.blue());
             telemetry.addData("middle: ", "%d", lineLightSensor.red() + lineLightSensor.green() + lineLightSensor.blue());
             telemetry.addData("u_front: ", "%f", ultra_front.getUltrasonicLevel());
             telemetry.addData("u_back: ", "%f", ultra_back.getUltrasonicLevel());
