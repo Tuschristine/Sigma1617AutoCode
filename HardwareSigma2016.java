@@ -32,6 +32,8 @@ public class HardwareSigma2016
     public DcMotor  backRightMotor = null;
     public DcMotor  frontLeftMotor = null;
     public DcMotor  frontRightMotor = null;
+    public DcMotor  flicker = null;
+    public DcMotor  intake = null;
     public Servo    pusherL    = null;
     public Servo    pusherR   = null;
     public ColorSensor lineLightSensor = null;
@@ -66,6 +68,8 @@ public class HardwareSigma2016
         frontRightMotor  = hwMap.dcMotor.get("motor_3");
         backLeftMotor  = hwMap.dcMotor.get("motor_1");
         backRightMotor = hwMap.dcMotor.get("motor_4");
+        flicker = hwMap.dcMotor.get("flicker");
+        intake = hwMap.dcMotor.get("intake");
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
