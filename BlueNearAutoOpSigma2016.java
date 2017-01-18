@@ -97,10 +97,10 @@ public class BlueNearAutoOpSigma2016 extends LinearOpMode {
     static final double DRIVE_SPEED = 0.9;     // Nominal speed for better accuracy.
     static final double P_DRIVE_COEFF = 0.05;     // Larger is more responsive, but also less stable
 
-    static final double TURN_SPEED = 0.25;     // Nominal half speed for better accuracy.
+    static final double TURN_SPEED = 0.3;     // Nominal half speed for better accuracy.
     static final double TURN_THRESHOLD = 2;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
-    static final double MIN_TURN_SPEED = 0.18;     // Larger is more responsive, but also less stable
+    static final double MIN_TURN_SPEED = 0.25;     // Larger is more responsive, but also less stable
 
     static final double maxLeftRightSpeedDifferentialAtDrive = 0.5;
     static final double maxLeftRightSpeedDifferentialAtUS_Tracking = 0.5;

@@ -37,10 +37,10 @@ import static org.firstinspires.ftc.teamcode.HardwareSigma2016.PUSHER_STOP;
  * Created by sidharth on 10/26/16.
  */
 
-@Autonomous(name="Reader Tele Op - v3", group="Autonomous")
+@Autonomous(name="Reader Tele Op - v3", group="Sigma6710")
 
 
-public class ReadAutoOpModeV3 extends ReadMethods{
+public class ReadAutoOpModeV3 extends LinearOpMode{
 
     FileInputStream is;
     BufferedReader reader;
