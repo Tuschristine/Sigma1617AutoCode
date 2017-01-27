@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -23,9 +24,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwareSigma2016
 {
     public int groundbrightness_test1=0;
-//    public final double FRONT_LIGHT_THRESH = 2.5;
-//    public final double BACK_LIGHT_THRESH = 2.5;
-    public final double CENTER_LIGHT_THRESH = 2.75;
+    public int groundbrightness_test2=0;
+    public int groundbrightness_test3=0;
+    public int groundbrightnessAVG = 0;
+    public double currentAngleSpeed = 0;
+    public double currentSpeed = 0;
+    public final double CENTER_LIGHT_THRESH = 3.0;
+
+    public int centerLightSensorLevel = 0;
+    public int centerLightSensorLevelMax = 0;
 
     /* Public OpMode members. */
     public DcMotor  backLeftMotor = null;
@@ -37,8 +44,6 @@ public class HardwareSigma2016
     public Servo    pusherL    = null;
     public Servo    pusherR   = null;
     public ColorSensor lineLightSensor = null;
-//    public ColorSensor front_light = null;
-//    public ColorSensor back_light = null;
     public ColorSensor beaconColorSensor = null;
     public UltrasonicSensor ultra_front = null;
     public UltrasonicSensor ultra_back = null;
@@ -48,8 +53,7 @@ public class HardwareSigma2016
     public static final double PUSHER_L_OUT  =  0.0 ;
     public static final double PUSHER_R_OUT  =  1.0 ;
     public static final double PUSHER_STOP = 0.5;
-
-
+    ModernRoboticsI2cGyro gyro = null;
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
     private ElapsedTime period  = new ElapsedTime();
@@ -68,8 +72,10 @@ public class HardwareSigma2016
         frontRightMotor  = hwMap.dcMotor.get("motor_3");
         backLeftMotor  = hwMap.dcMotor.get("motor_1");
         backRightMotor = hwMap.dcMotor.get("motor_4");
+
         flicker = hwMap.dcMotor.get("flicker");
         intake = hwMap.dcMotor.get("intake");
+
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -89,7 +95,7 @@ public class HardwareSigma2016
         Thread.sleep(1300);
         pusherL.setPosition(PUSHER_STOP);
         pusherR.setPosition(PUSHER_STOP);
-
+        gyro = (ModernRoboticsI2cGyro) hwMap.gyroSensor.get("gyro");
         // light sensor on the robot bottom
         lineLightSensor = hwMap.colorSensor.get("line_light");
         lineLightSensor.enableLed(true);
@@ -104,21 +110,13 @@ public class HardwareSigma2016
         beaconColorSensor = hwMap.colorSensor.get("beacon_color");
         beaconColorSensor.enableLed(false);
 
-//        front_light = hwMap.colorSensor.get("front_light");
-//        front_light.enableLed(false);
-//        groundbrightness_front = front_light.red() + front_light.green() + front_light.blue();
-
-//        back_light = hwMap.colorSensor.get("back_light");
-//        back_light.enableLed(false);
-//        groundbrightness_back = back_light.red() + back_light.green() + back_light.blue();
-
         // ultrasonic sensor
         ultra_back = hwMap.ultrasonicSensor.get("ultra_back");
         ultra_back.getUltrasonicLevel();  // make ultrasonic sensor ready and give stable output when needed.
         ultra_front = hwMap.ultrasonicSensor.get("ultra_front");
         ultra_front.getUltrasonicLevel(); // make ultrasonic sensor ready and give stable output when needed.
 
-        System.out.println("--------------- Sigma2016, hardware is initialized!");
+        System.out.println("Sigma2016 -- hardware is initialized!");
     }
 
     /***

@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.util.Range;
 
 //THE LINEAR TELE OP FOR SIGMAS 2016 with drive and beacon pushers.
 
-@TeleOp(name="Linear Tele Op New", group="Linear Opmode")
+@TeleOp(name="Linear Tele Op New 3", group="Linear Opmode")
 
 public class New_Linear_Tele_Op extends LinearOpMode{
 
@@ -23,11 +23,17 @@ public class New_Linear_Tele_Op extends LinearOpMode{
     DcMotor frontLeft;
     DcMotor backRight;
     DcMotor backLeft;
+    DcMotor flicker;
+    DcMotor intake;
+
     Servo beaconL;
     Servo beaconR;
 
     float leftThrottle;
     float rightThrottle;
+    float intakeThrottle;
+    float flickerThrottle;
+
     boolean y;
     boolean a;
     boolean up;
@@ -35,6 +41,9 @@ public class New_Linear_Tele_Op extends LinearOpMode{
     double beaconLPos;
     double beaconRPos;
     int increment;
+    int direction = 1;
+    boolean straight = false;
+    boolean normal = true;
 
     HardwareSigma2016 robot = new HardwareSigma2016();   // Use a Pushbot's hardware
 
@@ -48,122 +57,22 @@ public class New_Linear_Tele_Op extends LinearOpMode{
 
             leftThrottle = gamepad1.left_stick_y;
             rightThrottle = gamepad1.right_stick_y;
+            intakeThrottle = gamepad2.left_stick_y;
+            flickerThrottle = gamepad2.right_stick_y;
+
+            intake.setPower(intakeThrottle);
+            flicker.setPower(flickerThrottle);
 
             a = gamepad2.a;
             y = gamepad2.y;
             up = gamepad2.dpad_up;
             down = gamepad2.dpad_down;
 
-            float right = -rightThrottle;
-            float left = -leftThrottle;
 
-            right = (float) scaleInput(right);
-            left = (float) scaleInput(left);
 
-            if (increment == 11){
-                frontLeft.setPower(left);
-                backLeft.setPower(left);
-                frontRight.setPower(-right);
-                backRight.setPower(-right);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
 
-            if (increment == 10){
-                frontLeft.setPower(left);
-                backLeft.setPower(left);
-                frontRight.setPower(-right);
-                backRight.setPower(-right);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 9){
-                frontLeft.setPower(left * 0.9);
-                backLeft.setPower(left * 0.9);
-                frontRight.setPower(-right * 0.9);
-                backRight.setPower(-right * 0.9);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 8){
-                frontLeft.setPower(left * 0.8);
-                backLeft.setPower(left * 0.8);
-                frontRight.setPower(-right * 0.8);
-                backRight.setPower(-right * 0.8);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 7){
-                frontLeft.setPower(left * 0.7);
-                backLeft.setPower(left * 0.7);
-                frontRight.setPower(-right * 0.7);
-                backRight.setPower(-right * 0.7);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 6){
-                frontLeft.setPower(left * 0.6);
-                backLeft.setPower(left * 0.6);
-                frontRight.setPower(-right * 0.6);
-                backRight.setPower(-right * 0.6);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 5){
-                frontLeft.setPower(left * 0.5);
-                backLeft.setPower(left * 0.5);
-                frontRight.setPower(-right * 0.5);
-                backRight.setPower(-right * 0.5);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 4){
-                frontLeft.setPower(left * 0.4);
-                backLeft.setPower(left * 0.4);
-                frontRight.setPower(-right * 0.4);
-                backRight.setPower(-right * 0.4);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 3){
-                frontLeft.setPower(left * 0.3);
-                backLeft.setPower(left * 0.3);
-                frontRight.setPower(-right * 0.3);
-                backRight.setPower(-right * 0.3);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            if (increment == 2){
-                frontLeft.setPower(left * 0.3);
-                backLeft.setPower(left * 0.3);
-                frontRight.setPower(-right * 0.3);
-                backRight.setPower(-right * 0.3);
-                telemetry.addData("increment:", increment);
-                telemetry.update();
-            }
-
-            /**
-             * The tolerance for the variable
-             */
-
-            if (increment < 3){
-                increment = 3;
-            }
-
-            if (increment > 10){
-                increment = 10;
-            }
-
-            if(gamepad1.right_trigger == 1) {
-                increment -= 1;
+            if(gamepad1.dpad_down) {
+                direction *= -1;
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {
@@ -171,26 +80,29 @@ public class New_Linear_Tele_Op extends LinearOpMode{
                 }
             }
 
-            if (gamepad1.left_trigger == 1){
-                increment += 1;
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            if(gamepad1.x){
+                straight = false;
+                normal = true;
+            }
+            else if(gamepad1.b){
+                straight = true;
+                normal = false;
             }
 
-            if (gamepad1.left_bumper){
-                increment  = 10;
+            if(straight){
+                driveStraight();
             }
-
-            if (gamepad1.right_bumper){
-                increment  = 5;
+            else if(normal){
+                notDriveStraight();
             }
 
 
 
             if(y){
+                frontRight.setPower(0);
+                frontLeft.setPower(0);
+                backRight.setPower(0);
+                backLeft.setPower(0);
                 beaconR.setPosition(1.0);
                 try {
                     Thread.sleep(1300);
@@ -211,6 +123,10 @@ public class New_Linear_Tele_Op extends LinearOpMode{
             }
 
             if(up){
+                frontRight.setPower(0);
+                frontLeft.setPower(0);
+                backRight.setPower(0);
+                backLeft.setPower(0);
                 beaconL.setPosition(-1.0);
                 try {
                     Thread.sleep(1300);
@@ -228,23 +144,6 @@ public class New_Linear_Tele_Op extends LinearOpMode{
             else{
                 beaconL.setPosition(0.5);
             }
-
-
-            /*if(beaconRPos > 0.9){
-                beaconRPos = 0.9;
-            }
-            else if(beaconRPos < 0.2){
-                beaconRPos = 0.2;
-            }
-            if(beaconLPos > 0.9){
-                beaconLPos = 0.9;
-            }
-            else if(beaconLPos < 0.2){
-                beaconLPos = 0.2;
-            }*/
-
-            //beaconLPos = Range.clip(beaconLPos, -1.0, 1.0);
-            //beaconRPos = Range.clip(beaconRPos, -1.0, 1.0);
         }
     }
     public void myinit(){
@@ -254,6 +153,9 @@ public class New_Linear_Tele_Op extends LinearOpMode{
         backLeft = hardwareMap.dcMotor.get("motor_2");
         beaconL = hardwareMap.servo.get("pusher_l");
         beaconR = hardwareMap.servo.get("pusher_r");
+
+        flicker = hardwareMap.dcMotor.get("flicker");
+        intake = hardwareMap.dcMotor.get("intake");
 
         //beaconL.scaleRange(0.2, 0.9);
         //beaconR.scaleRange(0.2, 0.9);
@@ -281,5 +183,219 @@ public class New_Linear_Tele_Op extends LinearOpMode{
         }
 
         return dScale;
+    }
+    public void driveStraight(){
+        float right = rightThrottle;
+        float left = leftThrottle;
+
+        right = (float) scaleInput(right);
+        left = (float) scaleInput(left);
+
+        double power = increment/10;
+
+        //Drive motors
+        if(left > 0 && right > 0 || left < 0 && right < 0){
+            frontLeft.setPower(left);
+            backLeft.setPower(left);
+            frontRight.setPower(-left);
+            backRight.setPower(-left);
+        }
+        else if(left > 0 && right < 0 || left < 0 && right > 0){
+            frontLeft.setPower(left);
+            backLeft.setPower(left);
+            frontRight.setPower(-right);
+            backRight.setPower(-right);
+        }
+        else if(left == 0 && right == 0){
+            frontLeft.setPower(0);
+            backLeft.setPower(0);
+            frontRight.setPower(0);
+            backRight.setPower(0);
+        }
+
+
+        if (increment < 3){
+            increment = 3;
+        }
+
+        if (increment > 10){
+            increment = 10;
+        }
+
+        if(gamepad1.right_trigger == 1) {
+            increment -= 1;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (gamepad1.left_trigger == 1){
+            increment += 1;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (gamepad1.left_bumper){
+            increment  = 10;
+        }
+
+        if (gamepad1.right_bumper){
+            increment  = 5;
+        }
+        telemetry.addData("increment:", increment);
+        telemetry.addData("left", left);
+        telemetry.addData("right", right);
+        telemetry.update();
+    }
+    public void notDriveStraight(){
+
+        float right = 0;
+        float left = 0;
+
+        if(direction == 1){
+            right = -rightThrottle;
+            left = -leftThrottle;
+        }
+        else{
+            right = -leftThrottle;
+            left = -rightThrottle;
+        }
+
+
+        right = (float) scaleInput(right);
+        left = (float) scaleInput(left);
+
+        if (increment == 11){
+            frontLeft.setPower(left * direction);
+            backLeft.setPower(left * direction);
+            frontRight.setPower(-right * direction);
+            backRight.setPower(-right * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 10){
+            frontLeft.setPower(left * direction);
+            backLeft.setPower(left * direction);
+            frontRight.setPower(-right * direction);
+            backRight.setPower(-right * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 9){
+            frontLeft.setPower(left * 0.9 * direction);
+            backLeft.setPower(left * 0.9 * direction);
+            frontRight.setPower(-right * 0.9 * direction);
+            backRight.setPower(-right * 0.9 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 8){
+            frontLeft.setPower(left * 0.8 * direction);
+            backLeft.setPower(left * 0.8 * direction);
+            frontRight.setPower(-right * 0.8 * direction);
+            backRight.setPower(-right * 0.8 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 7){
+            frontLeft.setPower(left * 0.7 * direction);
+            backLeft.setPower(left * 0.7 * direction);
+            frontRight.setPower(-right * 0.7 * direction);
+            backRight.setPower(-right * 0.7 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 6){
+            frontLeft.setPower(left * 0.6 * direction);
+            backLeft.setPower(left * 0.6 * direction);
+            frontRight.setPower(-right * 0.6 * direction);
+            backRight.setPower(-right * 0.6 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 5){
+            frontLeft.setPower(left * 0.5 * direction);
+            backLeft.setPower(left * 0.5 * direction);
+            frontRight.setPower(-right * 0.5 * direction);
+            backRight.setPower(-right * 0.5 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 4){
+            frontLeft.setPower(left * 0.4 * direction);
+            backLeft.setPower(left * 0.4 * direction);
+            frontRight.setPower(-right * 0.4 * direction);
+            backRight.setPower(-right * 0.4 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 3){
+            frontLeft.setPower(left * 0.3 * direction);
+            backLeft.setPower(left * 0.3 * direction);
+            frontRight.setPower(-right * 0.3 * direction);
+            backRight.setPower(-right * 0.3 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        if (increment == 2){
+            frontLeft.setPower(left * 0.3 * direction);
+            backLeft.setPower(left * 0.3 * direction);
+            frontRight.setPower(-right * 0.3 * direction);
+            backRight.setPower(-right * 0.3 * direction);
+            telemetry.addData("increment:", increment);
+            telemetry.update();
+        }
+
+        /**
+         * The tolerance for the variable
+         */
+
+        if (increment < 3){
+            increment = 3;
+        }
+
+        if (increment > 10){
+            increment = 10;
+        }
+
+        if(gamepad1.right_trigger == 1) {
+            increment -= 1;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (gamepad1.left_trigger == 1){
+            increment += 1;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (gamepad1.left_bumper){
+            increment  = 10;
+        }
+
+        if (gamepad1.right_bumper){
+            increment  = 5;
+        }
     }
 }
