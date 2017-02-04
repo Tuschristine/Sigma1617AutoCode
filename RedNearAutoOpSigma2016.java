@@ -897,7 +897,7 @@ public class RedNearAutoOpSigma2016 extends LinearOpMode {
                     steer = Math.signum(distance) * angleSteer * 0.02;
 
                     // higher speed needs smaller steering and vice versa
-//                    steer = steer / (speed / WALL_TRAVELING_SPEED);
+                    steer = steer / (speed / WALL_TRAVELING_SPEED);
 
                     leftSpeed = speed - steer;
                     rightSpeed = speed + steer;
