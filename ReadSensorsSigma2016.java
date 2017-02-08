@@ -71,14 +71,14 @@ public class ReadSensorsSigma2016 extends Thread {
             speedTime2 = System.currentTimeMillis();
             position2 = robot.frontLeftMotor.getCurrentPosition();
 
-            robot.currentSpeed = Math.abs(position2 - position1)/(speedTime2 - speedTime1);
+            robot.currentSpeed = (Math.abs(position2 - position1)/(speedTime2 - speedTime1))/104.299 * 1000;
 
             speedTime1 = System.currentTimeMillis();
             angle1 = robot.gyro.getHeading();
             speedTime2 = System.currentTimeMillis();
             angle2 = robot.gyro.getHeading();
 
-            robot.currentAngleSpeed = Math.abs(angle2 - angle1)/(speedTime2 - speedTime1);
+            robot.currentAngleSpeed = Math.abs(angle2 - angle1)/(speedTime2 - speedTime1) * 1000;
 
 //            System.out.println("Sigma2016 -- Sensor reading thread is running. Priority = " + this.getPriority());
 //            System.out.println("ReadSensors thread cur time = " + System.currentTimeMillis());

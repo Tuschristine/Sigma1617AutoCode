@@ -105,13 +105,13 @@ public class New_Linear_Tele_Op extends LinearOpMode{
                 backLeft.setPower(0);
                 beaconR.setPosition(1.0);
                 try {
-                    Thread.sleep(1300);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 beaconR.setPosition(-1.0);
                 try {
-                    Thread.sleep(1300);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -129,13 +129,13 @@ public class New_Linear_Tele_Op extends LinearOpMode{
                 backLeft.setPower(0);
                 beaconL.setPosition(-1.0);
                 try {
-                    Thread.sleep(1300);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 beaconL.setPosition(1.0);
                 try {
-                    Thread.sleep(1300);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
